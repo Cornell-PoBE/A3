@@ -497,7 +497,7 @@ You now have an up and running EC2 instance!
 
 However, lets talk about automating the EC2 part. For this, we will use [Terraform](https://www.terraform.io/) to provision our infrastructure. There are many options, one big one is: [CloudFormation](https://aws.amazon.com/cloudformation/), but we will use Terrform for this tutorial.
 
-#### Terraform Setup
+#### Terraform Setup (THIS DOESNT NOT WORK YET!)
 
 To download `Terraform` you can download from [here](https://www.terraform.io/downloads.html) or just run `brew install terraform`. 
 To check that `Terraform` has been successfully installed run `terraform help`. 
@@ -636,15 +636,39 @@ output "ip" {
 }
 ```
 
-This will reference our resources and show us the IP address for the created instance called `a4`. Now run the following:
+This will reference our resources and show us the IP address for the created instance called `a4`. 
+Now you can terminate the instance you created and have `Terraform` handle it for you. 
+
+Now run the following:
 
 ```bash
 $ pwd
 <CURR_DIRECTORY>/A4/terraform
-$ terraform plan; terraform output
+$ terraform plan; terraform apply; terraform output
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+
+aws_security_group.web: Refreshing state... (ID: sg-3f7b4c40)
+aws_key_pair.a4: Refreshing state... (ID: a4keypair)
+...
+aws_instance.a4: Creation complete (ID: i-02158fa1be9c4980f)
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+...
+State path:
+
+Outputs:
+
+ip = <YOUR_NEW_PUBLIC_IP>
 ```
 
-And add the reuslt to your `host` file in your `vagrant` folder. 
+And add the result to your `host` file in your `vagrant` folder. 
+
+```yml
+[webservers]
+ <YOUR_NEW_PUBLIC_IP> ansible_ssh_user=ubuntu
+```
 
 Last step is to modify the settings in `Ansible` by changing the `ansible.cgf` to look like this:
 
@@ -661,8 +685,14 @@ pipelining = True
 Now you can run `ansible-playbook -v site.yml` and you are all set!
 
 ```bash
+$ pwd
+<CURR_DIRECTORY>/A4/terraform
+$ cd ..
+$ cd vagrant
 $ ansible-playbook -v site.yml
 ```
+
+## Assignment-Walkthrough TL;DR
 
 ## Expected Functionality
 
