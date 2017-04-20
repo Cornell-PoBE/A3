@@ -9,6 +9,7 @@ The section [here](#assignment-walkthrough) showcases an extensive walkthrough w
 
 * [Academic Integrity](#academic-integrity)
 * [Assignment Walkthrough](#assignment-walkthrough)
+* [Assignment Walkthrough TL;DR](#assignment-walkthrough-tldr)
 * [Expected Functionality](#expected-functionality)
 * [Extending the Assignment](#extending-the-assignment)
 * [Project Submission](#project-submission)
