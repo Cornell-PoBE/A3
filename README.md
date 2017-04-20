@@ -413,13 +413,23 @@ I would recommend that you choose the `t2.micro`, which is a small, free tier-el
 
 After, launching download the the key-pair and name it `a4keypair` for the sake of consistency with this tutorial. 
 
-Launch your instance and then ssh into system with the following command:
+Launch your instance, ssh into your instance, and create a private key with the following commands:
 
 ```bash
 $ chmod 400 <CURR_DIRECTORY>a4keypair.pem
 $ ssh -i <CURR_DIRECTORY>a4keypair.pem ubuntu@<SERVER_PUBLIC_IP>
 ...
-ubuntu@ip-172-31-37-236:~$ 
+ubuntu@ip-<SERVER_PRIVATE_IP>:~$ exit
+logout
+Connection to <SERVER_PUBLIC_IP> closed.
+$ ssh-keygen 
+enerating public/private rsa key pair.
+Enter file in which to save the key (/Users/<YOUR_USERNAME>/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /Users/<YOUR_USERNAME>/.ssh/id_rsa.
+Your public key has been saved in /Users/<YOUR_USERNAME>/.ssh/id_rsa.pub.
+...
 ```
 Now that we have a VM setup on EC2, let’s configure Ansible to provision it.
 
@@ -428,9 +438,9 @@ Let’s first make sure Ansible can ping your host and use SSH to log in to it. 
 Create a file called hosts in your Ansible directory:
 
 ```bash
-ubuntu@ip-172-31-37-236:~$ exit
+ubuntu@ip-<SERVER_PRIVATE_IP>:~$ exit
 logout
-Connection to 52.43.66.168 closed.
+Connection to <SERVER_PUBLIC_IP> closed.
 $ pwd
 <CURR_DIRECTORY>/A4/vagrant
 $ touch hosts
@@ -440,7 +450,7 @@ Modify that file to look like this:
 
 ```yml
 [webservers]
-<SERVER_PUBLIC_IP>
+ <SERVER_PUBLIC_IP> ansible_ssh_user=ubuntu
 ```
 
 In this file, we’re describing a group of servers: `webservers`, with a single host: the public server IP from our EC2.
@@ -468,15 +478,28 @@ Modify that file to look like this:
 
 ```yml
 [defaults]
-inventory = hosts
-remote_user = ubuntu
-private_key_file = a4keypair.pem
+inventory=hosts
+remote_user=ubuntu
+private_key_file=a4keypair.pem
 ```
 
+Now if you can run your ansible-playbook on your server and navigate to your EC2's Public IP and see your app live!
 
+```bash
+$ ansible-playbook -v site.yml
+...
+PLAY RECAP ***************************************************************************
+<SERVER_PUBLIC_IP>              : ok=11   changed=8    unreachable=0    failed=0
 
+```
 
 You now have an up and running EC2 instance!
+
+However, lets talk about automating the EC2 part. For this, we will use [Terraform](https://www.terraform.io/) to provision our infrastructure. There are many options, one big one is: [CloudFormation](https://aws.amazon.com/cloudformation/), but we will use Terrform for this tutorial.
+
+#### Terraform Setup
+
+
 
 ## Expected Functionality
 
