@@ -196,15 +196,30 @@ Your site.xml would look something like this, for our above example:
   remote_user: root
   tasks:
   - name: Update apt-get
-    shell: sudo apt-get update
+    command: sudo apt-get update
   - name: Install python-pip
-    shell: sudo apt-get install git python-pip
+    command: sudo apt-get -y install python-pip git python-dev
   - name: Clone our application repo
-    shell: git clone https://github.com/Cornell-PoBE/A4
+    command: git clone https://github.com/Cornell-PoBE/A4
   - name: CD into directory
-    shell: cd a4
+    command: cd A4
   - name: Install all pip modules
-    shell: sudo pip install -r requirements.txt
+    command: sudo pip install -r requirements.txt
+```
+
+Now that we have the playbook defined, we’ll need to tell our VM to use it when setting itself up. In your Vagrantfile, uncomment the bottom-most section on provisioning and change it to look like this:
+
+```ruby
+  config.vm.provision 'ansible' do |ansible|
+    ansible.playbook = 'site.yml'
+    ansible.verbose = 'v'
+  end
+```
+
+We’re telling Vagrant to use the `site.yml` file we created and to use verbose output. Then, let’s reprovision your host. This will run all the commands we defined in the playbook on it. `vagrant provision` should take care of it.
+
+```bash
+
 ```
 
 
