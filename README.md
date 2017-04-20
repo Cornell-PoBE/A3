@@ -56,7 +56,7 @@ Now we will customize the `Vagrantfile` for our use case. Our changes for our st
 * Change the config.vm.box value to ubuntu/trusty64: this sets our Virtual Machine to use one of the latest Ubuntu distributions.
 * Uncomment the line that has private_network in it and note the IP address. (By default, it’s 192.168.33.10).
 
-Your file should now look like this:
+Your Vagrantfile should now look like this:
 
 ```ruby
 # -*- mode: ruby -*-
@@ -131,6 +131,82 @@ Vagrant.configure(2) do |config|
   # SHELL
 end
 ```
+
+Next, in your terminal, you should run `vagrant up`. 
+This will download the Ubuntu image that we specified as the config.vm.box value and create your server as a virtual machine. 
+This might take a little while, depending on your connection speed. 
+Once it completes, run vagrant ssh. It will put us into the command line of our virtual machine (VM).
+
+```bash
+$ vagrant up
+Bringing machine 'default' up with 'virtualbox' provider...
+==> default: Importing base box 'ubuntu/trusty64'...
+...
+$ vagrant ssh
+Welcome to Ubuntu 14.04.5 LTS (GNU/Linux 3.13.0-95-generic x86_64)
+...
+vagrant@vagrant-ubuntu-trusty-64:~$ 
+```
+
+Now in your VM you can run the following:
+
+```bash
+vagrant@vagrant-ubuntu-trusty-64:~$  sudo apt-get update
+vagrant@vagrant-ubuntu-trusty-64:~$  sudo apt-get install git python-pip
+...
+Do you want to continue? [Y/n] Y
+...
+vagrant@vagrant-ubuntu-trusty-64:~$  git clone https://github.com/Cornell-PoBE/A4
+vagrant@vagrant-ubuntu-trusty-64:~$  cd A4
+vagrant@vagrant-ubuntu-trusty-64:~/A4$ sudo pip install -r requirements.txt
+...
+Successfully installed Flask gunicorn Werkzeug Jinja2 itsdangerous MarkupSafe
+Cleaning up...
+vagrant@vagrant-ubuntu-trusty-64:~/A4$ python app.py
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+```
+Now you can navigate to: `http://192.168.33.10:5000/` and see the app. 
+
+This is a simple way of bringing our app online. But let's say we want to automate this, and in the future automate more complicated instructions and executions.
+
+### Ansible Setup
+We will be using [Ansible](https://www.ansible.com/) and its playbooks to automate the instructions above, as an example. 
+Essentially, it will log in to servers that you specify using `ssh` and run commands on them. 
+
+To begin, you will need to exit the VM we created and install Ansible on the host machine. 
+```bash
+vagrant@vagrant-ubuntu-trusty-64:~/A4$ exit
+logout
+Connection to 127.0.0.1 closed.
+$ sudo pip install ansible
+...
+Successfully installed PyYAML-3.12 ansible-2.3.0.0 asn1crypto-0.22.0 cryptography-1.8.1 idna-2.5 ipaddress-1.0.18 packaging-16.8 paramiko-2.1.2 pycrypto-2.6.1
+```
+Now in your `vagrant` folder we will create a file called `site.yml`. 
+
+This will be our Ansible [playbook](http://docs.ansible.com/ansible/playbooks.html), and it will contain our automation steps. `site` implies that this is the only file needed to get a successful version of our site up and running. The `.yml` extension tells us that it’s a YAML-formatted file (Ansible’s preference).
+
+Your site.xml would look something like this, for our above example:
+
+```yml
+---
+# This is a simple example Ansible playbook
+- name: Launch Flask App
+  hosts: all
+  remote_user: root
+  tasks:
+  - name: Update apt-get
+    shell: sudo apt-get update
+  - name: Install python-pip
+    shell: sudo apt-get install git python-pip
+  - name: Clone our application repo
+    shell: git clone https://github.com/Cornell-PoBE/A4
+  - name: CD into directory
+    shell: cd a4
+  - name: Install all pip modules
+    shell: sudo pip install -r requirements.txt
+```
+
 
 
 ## Expected Functionality
