@@ -406,7 +406,7 @@ The next step in our tutorial is to deploy our application to Amazon AWS.
 
 You will be required to create an Amazon Account and launch an EC2 instance.
 
-This EC2 instance should be using `Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-fce3c696` as an AMI. 
+This EC2 instance should be using `Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-7c22b41c` as an AMI. 
 This AMI will be the same type of OS that we used for our VM.
 
 I would recommend that you choose the `t2.micro`, which is a small, free tier-eligible instance type. 
@@ -418,9 +418,65 @@ Launch your instance and then ssh into system with the following command:
 ```bash
 $ chmod 400 <CURR_DIRECTORY>a4keypair.pem
 $ ssh -i <CURR_DIRECTORY>a4keypair.pem ubuntu@<SERVER_PUBLIC_IP>
+...
+ubuntu@ip-172-31-37-236:~$ 
+```
+Now that we have a VM setup on EC2, let’s configure Ansible to provision it.
+
+Let’s first make sure Ansible can ping your host and use SSH to log in to it. Before we can begin, we need to set up the [inventory](http://docs.ansible.com/ansible/intro_inventory.html) file so Ansible knows about our server.
+
+Create a file called hosts in your Ansible directory:
+
+```bash
+ubuntu@ip-172-31-37-236:~$ exit
+logout
+Connection to 52.43.66.168 closed.
+$ pwd
+<CURR_DIRECTORY>/A4/vagrant
+$ touch hosts
 ```
 
-You now have an up and running EC2 instances!
+Modify that file to look like this:
+
+```yml
+[webservers]
+<SERVER_PUBLIC_IP>
+```
+
+In this file, we’re describing a group of servers: `webservers`, with a single host: the public server IP from our EC2.
+
+Now run the following command:
+
+```bash
+$ ansible -m ping webservers --private-key=a4keypair.pem --inventory=hosts --user=ubuntu
+<SERVER_PUBLIC_IP> | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+Let's automate this `ssh` like process with an Ansible [config](http://docs.ansible.com/ansible/intro_configuration.html) file to automate it. 
+Create a file named `ansible.cfg` in your vagrant directory:
+
+```bash
+$ pwd
+<CURR_DIRECTORY>/A4/vagrant
+$ touch ansible.cfg
+```
+
+Modify that file to look like this:
+
+```yml
+[defaults]
+inventory = hosts
+remote_user = ubuntu
+private_key_file = a4keypair.pem
+```
+
+
+
+
+You now have an up and running EC2 instance!
 
 ## Expected Functionality
 
