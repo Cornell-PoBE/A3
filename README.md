@@ -499,7 +499,170 @@ However, lets talk about automating the EC2 part. For this, we will use [Terrafo
 
 #### Terraform Setup
 
+To download `Terraform` you can download from [here](https://www.terraform.io/downloads.html) or just run `brew install terraform`. 
+To check that `Terraform` has been successfully installed run `terraform help`. 
 
+Basically how Terraform works is that we’ll define the different resources that we want to set up and then we’ll use `Terraform` to plan out what our changes will do and, finally, apply the plan. 
+
+Firstly you will make a directory for `Terraform` in your application and create a new file called: `main.tf`. The `.tf`extensions indicate that they’re using the Terraform syntax, which is similar to JSON.
+
+```bash
+$ pwd
+<CURR_DIRECTORY>/A4
+$ mkdir terraform
+$ cd terraform
+$ touch main.tf
+```
+
+Modify the `main.tf` file to include the following:
+
+```tf
+provider "aws" {
+    access_key = "${var.aws_access_key}"
+    secret_key = "${var.aws_secret_key}"
+    region = "${var.aws_region}"
+}
+
+resource "aws_instance" "a4" {
+    ami = "ami-7c22b41c"  # Ubuntu 14.04 for us-east-1
+    instance_type = "t2.micro"
+    vpc_security_group_ids = ["${aws_security_group.web.id}"]
+    key_name = "${aws_key_pair.a4.id}"
+}
+
+resource "aws_security_group" "web" {
+    name = "web"
+    description = "Allow HTTP and SSH connections."
+    ingress {
+        from_port = 22
+        to_port = 22
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+        from_port = 80
+        to_port = 80
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress {
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+}
+
+resource "aws_key_pair" "a4keypair" {
+    key_name = "a4keypair"
+    public_key = "${file(var.public_key_path)}"
+}
+```
+In the first provider block, we specify our credentials for AWS. The `${var.aws_secret_key}` value, for example, tells `Terraform` to look for a variable named `aws_secret_key` and plug the value in there. 
+
+For our instance, we set the Amazon AMI ID to match thet one we used previously in the tutorial. We also set up the key and security groups to reference other resources. `"${aws_security_group.web.id}"` tells `Terraform` to look for another `aws_security_group` resource named `web` and plug in its `id`.
+
+Next, we set up the `security group` as we did in the tutorial above. We’re letting in SSH control (port 22), HTTP (port 80), and nothing else. We’re allowing all outbound traffic.
+
+Finally, we create a new `aws_key_pair` to remotely ssh into our server, just as we did when setting it up manually above.
+
+Now, we had defined a few [variables](https://www.terraform.io/intro/getting-started/variables.html) in our `main.tf` file, and we need to provide the values for those to `Terraform`. As such we will create a new file called variables.tf. 
+
+```bash
+$ pwd
+<CURR_DIRECTORY>/A4/terraform
+$ touch variables.tf
+```
+
+Modify this file to have this:
+
+```tf
+variable "aws_access_key" {} # This variable come from the terraform.tfvars file
+variable "aws_secret_key" {} # This variable come from the terraform.tfvars file
+
+variable "aws_region" {
+    description = "AWS region in which to launch the servers."
+    default = "us-east-1"
+}
+
+variable "public_key_path" {
+    default = "~/.ssh/id_rsa.pub"
+}
+```
+
+Finally, we’ll need one more file, which we’ll want to be sure we don’t include in version control. This file will be `terraform.tfvars`, which, by convention, contains secret keys and such.
+
+```bash
+$ pwd
+<CURR_DIRECTORY>/A4/terraform
+$ touch terraform.tfvars 
+```
+
+Mofidy this file to have this:
+
+```tfvars
+aws_access_key = "<YOUR_AWS_ACCESS_KEY>"
+aws_secret_key = "<YOUR_AWS_SECRET_KEY>"
+```
+
+To get an AWS access and secret key it will require you to go to the IAM portion of in AWS and doing the following steps:
+
+* Select the “Identity & Access Management” section
+* Select Users
+* Click the “Create New Users” button and following the prompts
+* Select "Set permissions for <YOUR_USER>" and choose “admin" from the dropdown menu. Save your changes.
+* Create user
+* Grab Access Key and Secret Key
+
+Next we would like to set it up using Ansible but, in order to do that, we need to know the ip address created by our `Terraform` plan. 
+
+To do this we will leverage [output variables](https://www.terraform.io/intro/getting-started/outputs.html). 
+
+As such we wil need to make one more file: 
+
+```bash
+$ pwd
+<CURR_DIRECTORY>/A4/terraform
+$ touch output.tf
+```
+
+Modify this file to look like this:
+
+```tf
+output "ip" {
+    value = "${aws_instance.a4.public_ip}"
+}
+```
+
+This will reference our resources and show us the IP address for the created instance called `a4`. Now run the following:
+
+```bash
+$ pwd
+<CURR_DIRECTORY>/A4/terraform
+$ terraform plan; terraform output
+```
+
+And add the reuslt to your `host` file in your `vagrant` folder. 
+
+Last step is to modify the settings in `Ansible` by changing the `ansible.cgf` to look like this:
+
+```cfg
+[defaults]
+inventory=hosts
+remote_user=ubuntu
+private_key_file=a4keypair.pem
+
+[ssh_connection]
+pipelining = True
+```
+
+Now you can run `ansible-playbook -v site.yml` and you are all set!
+
+```bash
+$ ansible-playbook -v site.yml
+```
 
 ## Expected Functionality
 
