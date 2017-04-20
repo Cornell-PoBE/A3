@@ -40,6 +40,8 @@ Next you will make a new directory called `vagrant` and set up a basic Vagrant c
 This can be done by running `vagrant init.`
 
 ```bash
+$ git clone https://github.com/Cornell-PoBE/A4
+$ cd A4
 $ pwd
 <CURR_DIRECTORY>/A4
 $ mkdir vagrant
@@ -186,23 +188,38 @@ Now in your `vagrant` folder we will create a file called `site.yml`.
 
 This will be our Ansible [playbook](http://docs.ansible.com/ansible/playbooks.html), and it will contain our automation steps. `site` implies that this is the only file needed to get a successful version of our site up and running. The `.yml` extension tells us that it’s a YAML-formatted file (Ansible’s preference).
 
-Your site.xml would look something like this, for our above example:
+Your site.xml would look something like this, for our above example: 
 
 ```yml
+# This is an example of a simple Ansible cookbook
 ---
-# This is a simple example Ansible playbook
-- name: Launch Flask App
+- name: Starting a Simple Flask App
   hosts: all
   remote_user: root
+  become: true
+  become_method: sudo
+  vars:
+      repository_url: https://github.com/Cornell-PoBE/A4
+      repository_path: /home/vagrant/A4
+
   tasks:
-  - name: Update apt-get
-    command: sudo apt-get update
-  - name: Install python-pip
-    command: sudo apt-get -y install python-pip git python-dev
-  - name: Clone our application repo
-    command: git clone https://github.com/Cornell-PoBE/A4
-  - name: Install all pip modules in a4
-    command: chdir=A4 sudo pip install -r requirements.txt
+    - name: Install necessary packages
+      apt: update_cache=yes name={{ item }} state=present
+      with_items:
+        - git
+        - python-dev
+        - python-pip
+    - name: Check if A4 directory exists
+      stat: path='{{ repository_path }}'
+      register: a4_cloned
+    - name: Pull application repo
+      command: chdir='{{ repository_path }}' git pull origin master
+      when: a4_cloned.stat.exists
+    - name: Clone application repo
+      git: repo='{{ repository_url }}' dest='{{ repository_path }}'
+      when: a4_cloned.stat.exists == false
+    - name: Install pip requirements
+      pip: requirements='{{ repository_path }}/requirements.txt'
 ```
 
 Now that we have the playbook defined, we’ll need to tell our VM to use it when setting itself up. In your Vagrantfile, uncomment the bottom-most section on provisioning and change it to look like this:
@@ -244,7 +261,8 @@ We’re going to assume that the rest of what you’re doing here will be run wi
 
 #### Gunicorn Setup
 
-You can run `gunicorn` with just `$ gunicorn --bind 0.0.0.0:8000 app:app`. This command will use gunicorn to serve your application through WSGI, which is the traditional way that Python webapps are served. It replaces our usual python app.py step. This is the simplest way to serve our application for now.
+We have already included gunicorn in our `requirements.txt` and since it is able to detect our Flask app, it is already configured! Easy!
+You can run `gunicorn` with just `$ gunicorn --bind 0.0.0.0:8000 app:app`. This command will use gunicorn to serve your application through WSGI, which is the traditional way that Python webapps are served. It replaces our usual `python app.py` step. This is the simplest way to serve our application for now.
 
 #### nginx setup
 
@@ -259,7 +277,7 @@ $ pwd
 <CURR_DIRECTORY>/A4/vagrant
 $ touch a4.nginx.j2
 ```
-
+We will then edit `a4.nginx.j2` to contain the following:
 ```j2
 server {
     listen 80;
@@ -270,15 +288,13 @@ server {
     }
 }
 ```
-We will write our file to `/etc/nginx/sites-enabled/a4` and it should look like this
-
 This file will tell nginx to look for our server,a unix socket, which, if our gunicorn server is running properly, should be accessible.
 
 #### Upstart Scripts
 
-With have `gunicorn` rudimentarily configured we’ll want to set up a script so that we can run our server automatically when our server restarts or just kick the process if it’s stuck. How we’ll do that is with an [upstart](http://upstart.ubuntu.com/) script. This script will handle starting and stopping tasks.
+With `gunicorn` rudimentarily configured, we’ll want to set up a script so that we can run our server automatically when our server restarts or just kick the process if it’s stuck. How we’ll do that is with an [upstart](http://upstart.ubuntu.com/) script. This script will handle starting and stopping tasks.
 
-With an upstart scrupt we should be able to run `sudo service nginx restart` to start the task, go in your browser, and then view the service at `http://192.168.33.10`, as before. The big difference is now we have something that will run it for us, so we don’t need to SSH in to run our server.
+With an upstart scrupt we should be able to run `sudo service nginx restart` to start the task, go in your browser, and then view the service at `http://192.168.33.10`, as before. The big difference is now we have something that will run it for us, so we don’t need to SSH to run our server.
 
 As such we will create an a4-upstart script:
 
@@ -304,7 +320,7 @@ chdir {{ repository_path }}
 exec gunicorn app:app --bind unix:/tmp/hello_world.sock --workers 3
 ```
 
-However we must ensure that Ansible copies those two file into the `vagrant` directory for each of the VMs. 
+However we must ensure that Ansible copies those two file into the `vagrant` directory, so each of the VMs will have access to the files. 
 
 As such, you will modify your site.yml to be this:
 
@@ -361,7 +377,7 @@ We’re using Ansible’s template and service modules to accomplish our task. W
 
 Then, we want to make sure our service has started. If it hasn’t been started yet, start it.
 
-The removal of `etc/nginx/sites-enabled/default` is necessary since there is a [problem](http://stackoverflow.com/questions/14972792/nginx-nginx-emerg-bind-to-80-failed-98-address-already-in-use) with the default site that’s enabled by nginx. We don’t need it, so we remove it. 
+The removal of `etc/nginx/sites-enabled/default` is necessary since there is a [problem](http://stackoverflow.com/questions/14972792/nginx-nginx-emerg-bind-to-80-failed-98-address-already-in-use) with the `default` site that’s enabled by `nginx`. We don’t need it, so we remove it. 
 
 You can now run `vagrant provision`, `vagrant ssh`, and `sudo service nginx restart` to start the web server. 
 
