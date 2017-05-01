@@ -8,8 +8,8 @@ This assignment is trying to allow for you to explore the word of DevOPs by gett
 * `gunicorn` as a way to serve your application through `WSGI`
 * `nginx` as an HTTP server to handle and route requests
 * `vagrant` as a virtual machine to simule our AWs AMI
-* 'ansible' as a tool for automated deployment
-* 'terraform' as a service to launch AWS instances and other services
+* `ansible` as a tool for automated deployment
+* `terraform` as a service to launch AWS instances and other services
 
 
 ## Table of Contents
