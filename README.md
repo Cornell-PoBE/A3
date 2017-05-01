@@ -1,4 +1,4 @@
-# Assignment 3 - DevOps
+# Assignment 3- DevOps
 
 In this fourth assignment, you will be deploying your A2 application and setting up an environment that allows for you to continously update said application. 
 The section [here](#assignment-walkthrough) showcases an extensive walkthrough with the dummy app contained in this repository. 
@@ -41,10 +41,10 @@ Next you will make a new directory called `vagrant` and set up a basic Vagrant c
 This can be done by running `vagrant init.`
 
 ```bash
-$ git clone https://github.com/Cornell-PoBE/A4
-$ cd A4
+$ git clone https://github.com/Cornell-PoBE/A3
+$ cd A3
 $ pwd
-<CURR_DIRECTORY>/A4
+<CURR_DIRECTORY>/A3
 $ mkdir vagrant
 $ cd vagrant
 $ vagrant init
@@ -159,13 +159,13 @@ vagrant@vagrant-ubuntu-trusty-64:~$  sudo apt-get install git python-pip
 ...
 Do you want to continue? [Y/n] Y
 ...
-vagrant@vagrant-ubuntu-trusty-64:~$  git clone https://github.com/Cornell-PoBE/A4
-vagrant@vagrant-ubuntu-trusty-64:~$  cd A4
-vagrant@vagrant-ubuntu-trusty-64:~/A4$ sudo pip install -r requirements.txt
+vagrant@vagrant-ubuntu-trusty-64:~$  git clone https://github.com/Cornell-PoBE/A3
+vagrant@vagrant-ubuntu-trusty-64:~$  cd A3
+vagrant@vagrant-ubuntu-trusty-64:~/A3$ sudo pip install -r requirements.txt
 ...
 Successfully installed Flask gunicorn Werkzeug Jinja2 itsdangerous MarkupSafe
 Cleaning up...
-vagrant@vagrant-ubuntu-trusty-64:~/A4$ python app.py
+vagrant@vagrant-ubuntu-trusty-64:~/A3$ python app.py
  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
 ```
 Now you can navigate to: `http://192.168.33.10:5000/` and see the app. 
@@ -178,7 +178,7 @@ Essentially, it will log in to servers that you specify using `ssh` and run comm
 
 To begin, you will need to exit the VM we created and install Ansible on the host machine. 
 ```bash
-vagrant@vagrant-ubuntu-trusty-64:~/A4$ exit
+vagrant@vagrant-ubuntu-trusty-64:~/A3$ exit
 logout
 Connection to 127.0.0.1 closed.
 $ sudo pip install ansible
@@ -200,8 +200,8 @@ Your site.xml would look something like this, for our above example:
   become: true
   become_method: sudo
   vars:
-      repository_url: https://github.com/Cornell-PoBE/A4
-      repository_path: /home/vagrant/A4
+      repository_url: https://github.com/Cornell-PoBE/A3
+      repository_path: /home/vagrant/A3
 
   tasks:
     - name: Install necessary packages
@@ -210,15 +210,15 @@ Your site.xml would look something like this, for our above example:
         - git
         - python-dev
         - python-pip
-    - name: Check if A4 directory exists
+    - name: Check if A3 directory exists
       stat: path='{{ repository_path }}'
-      register: a4_cloned
+      register: a3_cloned
     - name: Pull application repo
       command: chdir='{{ repository_path }}' git pull origin master
-      when: a4_cloned.stat.exists
+      when: a3_cloned.stat.exists
     - name: Clone application repo
       git: repo='{{ repository_url }}' dest='{{ repository_path }}'
-      when: a4_cloned.stat.exists == false
+      when: a3_cloned.stat.exists == false
     - name: Install pip requirements
       pip: requirements='{{ repository_path }}/requirements.txt'
 ```
@@ -247,8 +247,8 @@ Bringing machine 'default' up with 'virtualbox' provider...
     default: Running ansible-playbook...
 ...
 $ vagrant ssh
-vagrant@vagrant-ubuntu-trusty-64:~$ cd A4
-vagrant@vagrant-ubuntu-trusty-64:~/A4$ python app.py
+vagrant@vagrant-ubuntu-trusty-64:~$ cd A3
+vagrant@vagrant-ubuntu-trusty-64:~/A3$ python app.py
  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
 ```
 
@@ -275,17 +275,17 @@ Create the nginx configuration will be created in vagrant directory as well:
 
 ```bash
 $ pwd
-<CURR_DIRECTORY>/A4/vagrant
-$ touch a4.nginx.j2
+<CURR_DIRECTORY>/A3/vagrant
+$ touch a3.nginx.j2
 ```
-We will then edit `a4.nginx.j2` to contain the following:
+We will then edit `a3.nginx.j2` to contain the following:
 ```j2
 server {
     listen 80;
 
     location / {
         include proxy_params;
-        proxy_pass http://unix:/tmp/a4.sock;
+        proxy_pass http://unix:/tmp/a3.sock;
     }
 }
 ```
@@ -297,18 +297,18 @@ With `gunicorn` rudimentarily configured, we’ll want to set up a script so tha
 
 With an upstart scrupt we should be able to run `sudo service nginx restart` to start the task, go in your browser, and then view the service at `http://192.168.33.10`, as before. The big difference is now we have something that will run it for us, so we don’t need to SSH to run our server.
 
-As such we will create an a4-upstart script:
+As such we will create an a3-upstart script:
 
 ```bash
 $ pwd
-<CURR_DIRECTORY>/A4/vagrant
+<CURR_DIRECTORY>/A3/vagrant
 $ touch upstart.conf.j2
 ```
 
 We will modify that file to contain this:
 
 ```j2
-description "hello-world"
+description "a3"
 
 start on (filesystem)
 stop on runlevel [016]
@@ -318,7 +318,7 @@ setuid nobody
 setgid nogroup
 chdir {{ repository_path }}
 
-exec gunicorn app:app --bind unix:/tmp/hello_world.sock --workers 3
+exec gunicorn app:app --bind unix:/tmp/a3.sock --workers 3
 ```
 
 However we must ensure that Ansible copies those two file into the `vagrant` directory, so each of the VMs will have access to the files. 
@@ -334,8 +334,8 @@ As such, you will modify your site.yml to be this:
   become: true
   become_method: sudo
   vars:
-      repository_url: https://github.com/Cornell-PoBE/A4
-      repository_path: /home/vagrant/A4
+      repository_url: https://github.com/Cornell-PoBE/A3
+      repository_path: /home/vagrant/A3
   tasks:
     - name: Install necessary packages
       apt: update_cache=yes name={{ item }} state=present
@@ -344,15 +344,15 @@ As such, you will modify your site.yml to be this:
         - python-dev
         - python-pip
         - nginx
-    - name: Check if A4 directory exists
+    - name: Check if A3 directory exists
       stat: path='{{ repository_path }}'
-      register: a4_cloned
+      register: a3_cloned
     - name: Pull application repo
       command: chdir='{{ repository_path }}' git pull origin master
-      when: a4_cloned.stat.exists
+      when: a3_cloned.stat.exists
     - name: Clone application repo
       git: repo='{{ repository_url }}' dest='{{ repository_path }}'
-      when: a4_cloned.stat.exists == false
+      when: a3_cloned.stat.exists == false
     - name: Install pip requirements
       pip: requirements='{{ repository_path }}/requirements.txt'
     - name: Copy Upstart configuration
@@ -360,7 +360,7 @@ As such, you will modify your site.yml to be this:
     - name: Make sure our server is running
       service: name=upstart state=started
     - name: Copy Nginx site values
-      template: src=a4.nginx.j2 dest=/etc/nginx/sites-enabled/a4
+      template: src=a3.nginx.j2 dest=/etc/nginx/sites-enabled/a3
       notify:
         - restart nginx
     - name: Remove any default sites
@@ -384,9 +384,9 @@ You can now run `vagrant provision`, `vagrant ssh`, and `sudo service nginx rest
 
 ```bash
 $ pwd
-<CURR_DIRECTORY>/A4/vagrant
+<CURR_DIRECTORY>/A3/vagrant
 $ ls
-Vagrantfile     a4.nginx.j2     site.yml        upstart.conf.j2
+Vagrantfile     a3.nginx.j2     site.yml        upstart.conf.j2
 $ vagrant provision 
 ==> default: Running provisioner: ansible...
     default: Running ansible-playbook...
@@ -394,8 +394,8 @@ $ vagrant provision
 TASK [Make sure nginx is running]
 ...
 $ vagrant ssh
-vagrant@vagrant-ubuntu-trusty-64:~$ cd A4
-vagrant@vagrant-ubuntu-trusty-64:~/A4$ sudo service nginx restart
+vagrant@vagrant-ubuntu-trusty-64:~$ cd A3
+vagrant@vagrant-ubuntu-trusty-64:~/A3$ sudo service nginx restart
  * Restarting nginx nginx  						[OK]
 ```
 
@@ -412,13 +412,13 @@ This AMI will be the same type of OS that we used for our VM.
 
 I would recommend that you choose the `t2.micro`, which is a small, free tier-eligible instance type. 
 
-After, launching download the the key-pair and name it `a4keypair` for the sake of consistency with this tutorial. 
+After, launching download the the key-pair and name it `a3keypair` for the sake of consistency with this tutorial. 
 
 Launch your instance, ssh into your instance, and create a private key with the following commands:
 
 ```bash
-$ chmod 400 <CURR_DIRECTORY>a4keypair.pem
-$ ssh -i <CURR_DIRECTORY>a4keypair.pem ubuntu@<SERVER_PUBLIC_IP>
+$ chmod 400 <CURR_DIRECTORY>a3keypair.pem
+$ ssh -i <CURR_DIRECTORY>a3keypair.pem ubuntu@<SERVER_PUBLIC_IP>
 ...
 ubuntu@ip-<SERVER_PRIVATE_IP>:~$ exit
 logout
@@ -443,7 +443,7 @@ ubuntu@ip-<SERVER_PRIVATE_IP>:~$ exit
 logout
 Connection to <SERVER_PUBLIC_IP> closed.
 $ pwd
-<CURR_DIRECTORY>/A4/vagrant
+<CURR_DIRECTORY>/A3/vagrant
 $ touch hosts
 ```
 
@@ -459,7 +459,7 @@ In this file, we’re describing a group of servers: `webservers`, with a single
 Now run the following command:
 
 ```bash
-$ ansible -m ping webservers --private-key=a4keypair.pem --inventory=hosts --user=ubuntu
+$ ansible -m ping webservers --private-key=a3keypair.pem --inventory=hosts --user=ubuntu
 <SERVER_PUBLIC_IP> | SUCCESS => {
     "changed": false,
     "ping": "pong"
@@ -471,7 +471,7 @@ Create a file named `ansible.cfg` in your vagrant directory:
 
 ```bash
 $ pwd
-<CURR_DIRECTORY>/A4/vagrant
+<CURR_DIRECTORY>/A3/vagrant
 $ touch ansible.cfg
 ```
 
@@ -481,7 +481,7 @@ Modify that file to look like this:
 [defaults]
 inventory=hosts
 remote_user=ubuntu
-private_key_file=a4keypair.pem
+private_key_file=a3keypair.pem
 ```
 
 Now if you can run your ansible-playbook on your server and navigate to your EC2's Public IP and see your app live!
@@ -509,7 +509,7 @@ Firstly you will make a directory for `Terraform` in your application and create
 
 ```bash
 $ pwd
-<CURR_DIRECTORY>/A4
+<CURR_DIRECTORY>/A3
 $ mkdir terraform
 $ cd terraform
 $ touch main.tf
@@ -524,11 +524,11 @@ provider "aws" {
     region = "${var.aws_region}"
 }
 
-resource "aws_instance" "a4" {
+resource "aws_instance" "a3" {
     ami = "ami-7c22b41c"  # Ubuntu 14.04 for us-east-1
     instance_type = "t2.micro"
     vpc_security_group_ids = ["${aws_security_group.web.id}"]
-    key_name = "${aws_key_pair.a4.id}"
+    key_name = "${aws_key_pair.a3.id}"
 }
 
 resource "aws_security_group" "web" {
@@ -556,8 +556,8 @@ resource "aws_security_group" "web" {
     }
 }
 
-resource "aws_key_pair" "a4keypair" {
-    key_name = "a4keypair"
+resource "aws_key_pair" "a3keypair" {
+    key_name = "a3keypair"
     public_key = "${file(var.public_key_path)}"
 }
 ```
@@ -573,7 +573,7 @@ Now, we had defined a few [variables](https://www.terraform.io/intro/getting-sta
 
 ```bash
 $ pwd
-<CURR_DIRECTORY>/A4/terraform
+<CURR_DIRECTORY>/A3/terraform
 $ touch variables.tf
 ```
 
@@ -597,7 +597,7 @@ Finally, we’ll need one more file, which we’ll want to be sure we don’t in
 
 ```bash
 $ pwd
-<CURR_DIRECTORY>/A4/terraform
+<CURR_DIRECTORY>/A3/terraform
 $ touch terraform.tfvars 
 ```
 
@@ -625,7 +625,7 @@ As such we wil need to make one more file:
 
 ```bash
 $ pwd
-<CURR_DIRECTORY>/A4/terraform
+<CURR_DIRECTORY>/A3/terraform
 $ touch output.tf
 ```
 
@@ -633,27 +633,27 @@ Modify this file to look like this:
 
 ```tf
 output "ip" {
-    value = "${aws_instance.a4.public_ip}"
+    value = "${aws_instance.a3.public_ip}"
 }
 ```
 
-This will reference our resources and show us the IP address for the created instance called `a4`. 
+This will reference our resources and show us the IP address for the created instance called `a3`. 
 Now you can terminate the instance you created and have `Terraform` handle it for you. 
 
 Now run the following:
 
 ```bash
 $ pwd
-<CURR_DIRECTORY>/A4/terraform
+<CURR_DIRECTORY>/A3/terraform
 $ terraform plan; terraform apply; terraform output
 Refreshing Terraform state in-memory prior to plan...
 The refreshed state will be used to calculate this plan, but will not be
 persisted to local or remote state storage.
 
 aws_security_group.web: Refreshing state... (ID: sg-3f7b4c40)
-aws_key_pair.a4: Refreshing state... (ID: a4keypair)
+aws_key_pair.a3: Refreshing state... (ID: a3keypair)
 ...
-aws_instance.a4: Creation complete (ID: i-02158fa1be9c4980f)
+aws_instance.a3: Creation complete (ID: i-02158fa1be9c4980f)
 
 Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 ...
@@ -677,7 +677,7 @@ Last step is to modify the settings in `Ansible` by changing the `ansible.cgf` t
 [defaults]
 inventory=hosts
 remote_user=ubuntu
-private_key_file=a4keypair.pem
+private_key_file=a3keypair.pem
 
 [ssh_connection]
 pipelining = True
@@ -687,7 +687,7 @@ Now you can run `ansible-playbook -v site.yml` and you are all set!
 
 ```bash
 $ pwd
-<CURR_DIRECTORY>/A4/terraform
+<CURR_DIRECTORY>/A3/terraform
 $ cd ..
 $ cd vagrant
 $ ansible-playbook -v site.yml
