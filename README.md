@@ -1,15 +1,22 @@
 # Assignment 3- DevOps
 
-In this fourth assignment, you will be deploying your A2 application and setting up an environment that allows for you to continously update said application. 
-The section [here](#assignment-walkthrough) showcases an extensive walkthrough with the dummy app contained in this repository. 
+For your third assignment, you will be deploying your A2 application and setting up an environment that allows for you to continously update said application. 
+The section [here](#example-walkthrough) showcases an extensive walkthrough with the dummy app contained in this repository, leveraging Flask, GUnicorn, Nginx, Vagrant, Ansible, and Terraform. 
 
 ## Learning Objectives
+This assignment is trying to allow for you to explore the word of DevOPs by getting you comfortable working with the following tools / technologies / concepts:
+* `gunicorn` as a way to serve your application through `WSGI`
+* `nginx` as an HTTP server to handle and route requests
+* `vagrant` as a virtual machine to simule our AWs AMI
+* 'ansible' as a tool for automated deployment
+* 'terraform' as a service to launch AWS instances and other services
+
 
 ## Table of Contents
 
 * [Academic Integrity](#academic-integrity)
-* [Assignment Walkthrough](#assignment-walkthrough)
-* [Assignment Walkthrough TL;DR](#assignment-walkthrough-tldr)
+* [Example Walkthrough](#example-walkthrough)
+* [Example Walkthrough TL;DR](#example-walkthrough-tldr)
 * [Expected Functionality](#expected-functionality)
 * [Extending the Assignment](#extending-the-assignment)
 * [Project Submission](#project-submission)
