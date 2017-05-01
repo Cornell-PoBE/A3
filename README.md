@@ -1,7 +1,7 @@
 # Assignment 3- DevOps
 
 For your third assignment, you will be deploying your A2 application and setting up an environment that allows for you to continously update said application. 
-The section [here](#example-walkthrough) showcases an extensive walkthrough with the dummy app contained in this repository, leveraging Flask, GUnicorn, Nginx, Vagrant, Ansible, and Terraform. 
+The section [here](#example-walkthrough) showcases an extensive walkthrough with the dummy app contained in this repository: leveraging Flask, GUnicorn, Nginx, Vagrant, Ansible, and Terraform. 
 
 ## Learning Objectives
 This assignment is trying to allow for you to explore the word of DevOPs by getting you comfortable working with the following tools / technologies / concepts:
@@ -29,7 +29,7 @@ Note that these projects should be completed **individually**.  As a result, all
 
 ### Code Attribution and Collaboration
 
-## Assignment Walkthrough
+## Example Walkthrough
 For this assignment we will be deploying our Flask app leveraging Vagrant, Ansible, Terraform, and AWS. The walkthrough is as follows:
 ### Vagrant Setup
 For this assignment: instead of using [virtualenv](https://virtualenv.pypa.io/en/stable/) we will be using [Vagrant](https://www.vagrantup.com/). Why?
@@ -700,7 +700,7 @@ $ cd vagrant
 $ ansible-playbook -v site.yml
 ```
 
-## Assignment-Walkthrough TL;DR
+## Example Walkthrough TL;DR
 
 
 
