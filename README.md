@@ -1,6 +1,6 @@
-# Assignment 4 - DevOps
+# Assignment 43- DevOps
 
-In this fourth assignment, you will be deploying your a3 application and setting up an environment that allows for you to continously update said application. 
+In this fourth assignment, you will be deploying your A2 application and setting up an environment that allows for you to continously update said application. 
 The section [here](#assignment-walkthrough) showcases an extensive walkthrough with the dummy app contained in this repository. 
 
 ## Learning Objectives
