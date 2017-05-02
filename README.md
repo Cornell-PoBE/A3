@@ -903,7 +903,14 @@ $ ansible-playbook -v site.yml # ansible runs your app on EC2
 Now your app is deployed on EC2 and up on your local VM. Yay!
 
 ## Expected Functionality
+For this assignment we will be asking you to complete two things:
+* simulate your A2 application in Vagrand on an `Ubunutu 14.0.1` VM
+* deploy your application onto an EC2 instance via a signle `ansible` command
+
+To verify, you will be submitting your EC2 public url: which we you will be accessing to verify the deployment. 
 
 ## Extending the Assignment
 
+
 ## Project Submission
+
