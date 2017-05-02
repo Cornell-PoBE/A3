@@ -702,8 +702,205 @@ $ ansible-playbook -v site.yml
 
 ## Example Walkthrough TL;DR
 
+Assuming you have read the above or are aware of each of the technologies listed in [here](#learning-objectives) you may follow this guide to quickly deploy the dummy app in this repository both on your `Vagrant` Ubuntu VM and on AWS EC2. 
 
+Setup your directories with the following structure 
+```bash
+$ git clone https://github.com/Cornell-PoBE/A3.git
+$ cd A3
+$ mkdir vagrant
+$ cd vagrant
+$ vagrant init
+$ touch site.yml
+$ touch a3.nginx.j2
+$ touch ansible.cfg
+$ touch upstart.conf.j2
+$ touch hosts
+# Copy your keypair.pem into this directory 
+$ ls
+Vagrantfile     a3keypair.pem   hosts           upstart.conf.j2
+a3.nginx.j2     ansible.cfg     site.yml
+```
+I will now go through how each of your files should look for this app to be deployed:
 
+Vagrantfile:
+```ruby
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://atlas.hashicorp.com/search.
+  config.vm.box = "ubuntu/trusty64"
+
+  # Disable automatic box update checking. If you disable this, then
+  # boxes will only be checked for updates when the user runs
+  # `vagrant box outdated`. This is not recommended.
+  # config.vm.box_check_update = false
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  config.vm.network "private_network", ip: "192.168.33.10"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  # config.vm.network "public_network"
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+  # config.vm.provider "virtualbox" do |vb|
+  #   # Display the VirtualBox GUI when booting the machine
+  #   vb.gui = true
+  #
+  #   # Customize the amount of memory on the VM:
+  #   vb.memory = "1024"
+  # end
+  #
+  # View the documentation for the provider you are using for more
+  # information on available options.
+
+  # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
+  # such as FTP and Heroku are also available. See the documentation at
+  # https://docs.vagrantup.com/v2/push/atlas.html for more information.
+  # config.push.define "atlas" do |push|
+  #   push.app = "YOUR_ATLAS_USERNAME/YOUR_APPLICATION_NAME"
+  # end
+
+  # Enable provisioning with a shell script. Additional provisioners such as
+  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+  # documentation for more information about their specific syntax and use.
+  config.vm.provision 'ansible' do |ansible|
+    ansible.playbook = 'site.yml'
+    ansible.verbose = 'v'
+  end
+end
+```
+hosts:
+```
+[webservers]
+ <YOUR_EC2_PUBLIC_URL> ansible_ssh_user=ubuntu
+```
+
+upstart.conf.j2
+```yml
+description "upstart"
+
+start on (filesystem)
+stop on runlevel [016]
+
+respawn
+setuid nobody
+setgid nogroup
+chdir /home/vagrant/A3
+
+exec gunicorn app:app --bind unix:/tmp/a3.sock --workers 3
+```
+
+a3.nginx.j2:
+```j2
+server {
+    listen 80;
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/tmp/a3.sock;
+    }
+}
+```
+
+ansible.cfg:
+```cfg
+[defaults]
+inventory=hosts
+remote_user=ubuntu
+private_key_file='~/.ssh/id_rsa'
+
+[ssh_connection]
+pipelining = True
+```
+
+site.yml:
+```yml
+# This is a simple example Ansible playbook
+---
+- name: Starting a Simple Flask App
+  hosts: all
+  remote_user: root
+  become: true
+  become_method: sudo
+  vars:
+      repository_url: https://github.com/Cornell-PoBE/A3
+      repository_path: /home/vagrant/A3
+
+  tasks:
+    - name: Install necessary packages
+      apt: update_cache=yes name={{ item }} state=present
+      with_items:
+        - git
+        - python-dev
+        - python-pip
+        - nginx
+    - name: Check if A3 directory exists
+      stat: path='{{ repository_path }}'
+      register: a3_cloned
+    - name: Pull application repo
+      command: chdir='{{ repository_path }}' git pull origin master
+      when: a3_cloned.stat.exists
+    - name: Clone application repo
+      git: repo='{{ repository_url }}' dest='{{ repository_path }}'
+      when: a3_cloned.stat.exists == false
+    - name: Install pip requirements
+      pip: requirements='{{ repository_path }}/requirements.txt'
+    - name: Copy Upstart configuration
+      template: src=upstart.conf.j2 dest=/etc/init/upstart.conf
+    - name: Make sure our server is running
+      service: name=upstart state=started
+    - name: Copy Nginx site values
+      template: src=a3.nginx.j2 dest=/etc/nginx/sites-enabled/a3
+      notify:
+        - restart nginx
+    - name: Remove any default sites
+      file: path=/etc/nginx/sites-enabled/default state=absent
+      notify:
+        - restart nginx
+    - name: Make sure nginx is running
+      service: name=nginx state=started
+  handlers:
+    - name: restart nginx
+      service: name=nginx state=restarted
+```
+
+These files should be sufficient for seting up your enviroment. To proceed you will just run the following commands to load into your EC2:
+```bash
+$ cd vagrant
+$ vagrant up
+$ vagrant provision # nginx runs your app locally at: `192.168.33.10`
+$ ansible-playbook -v site.yml # ansible runs your app on EC2
+```
+
+Now your app is deployed on EC2 and up on your local VM. Yay!
 
 ## Expected Functionality
 
