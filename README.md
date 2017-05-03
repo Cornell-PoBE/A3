@@ -760,7 +760,7 @@ Follow these steps to have a proper t2.micro instance setup:
   * Create a new key pair
   * Set Key pair name: `a3keypair`
   * Download Key Pair
-  * Place key pair file into `/flaskplate/vagrant/
+  * Place key pair file into `/flaskplate/vagrant/`
 11. Wait until instance is green and with an instance state of: `running`
 12. Grab IPv4 Public IP, which I will call `PublicIP` for the rest of tutorial
 
