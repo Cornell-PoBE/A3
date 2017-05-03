@@ -997,7 +997,23 @@ These files should be sufficient for seting up your enviroment. To proceed you w
 $ cd vagrant
 $ vagrant up
 $ vagrant provision # nginx runs your app locally at: `192.168.33.10` on your Ubuntu VM
+$ chmod 400 a3keypair.pem # make sure that your private key file isn't publicly viewable
+$ ansible -m ping webservers --private-key=a3keypair.pem --inventory=hosts --user=ubuntu # ping and add host
+The authenticity of host '<PublicIP> (<PublicIP>)' can't be established.
+ECDSA key fingerprint is SHA256:Y35MHCMwSCH/GZyak+HWkd5bUCKm6JtMOuMCxMAnpkI.
+Are you sure you want to continue connecting (yes/no)? yes
+<PublicIP> | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
 $ ansible-playbook -v site.yml # ansible runs your app on EC2
+Using /Users/ilanfilonenko/flaskplate/vagrant/ansible.cfg as config file
+
+PLAY [Deploying your A2] ****************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ******************************************************************************************************************************************************************
+ok: [<PublicIP>]
+...
 ```
 
 Now your app is deployed on EC2 and up on your local VM. Yay!
