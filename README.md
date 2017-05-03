@@ -977,7 +977,7 @@ site.yml:
     - name: Make sure our server is running
       service: name=upstart state=started
     - name: Copy Nginx site values
-      template: src=cs.nginx.j2 dest=/etc/nginx/sites-enabled/cs
+      template: src=a3.nginx.j2 dest=/etc/nginx/sites-enabled/a3
       notify:
         - restart nginx
     - name: Remove any default sites
