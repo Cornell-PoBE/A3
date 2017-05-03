@@ -749,9 +749,9 @@ Follow these steps to have a proper t2.micro instance setup:
   * Set security group name: `pobe`
   * Set descrption: `Backend Engineering Security Group`
   * Use the following configs:
-  
+
     | Type | Ports | Protocol | Source          |
-    |:---:||:-----:|:--------:|-----------------|
+    |:----:||:-----:|:--------:|-----------------|
     | HTTP |   80  |    tcp   | 0.0.0.0/0, ::/0 |
     | SSH  |   22  |    tcp   | 0.0.0.0/0, ::/0 |
     | HTTPS| 443   |    tcp   | 0.0.0.0/0, ::/0 |
