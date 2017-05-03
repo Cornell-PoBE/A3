@@ -999,7 +999,7 @@ $ vagrant up
 $ vagrant provision # nginx runs your app locally at: `192.168.33.10` on your Ubuntu VM
 $ chmod 400 a3keypair.pem # make sure that your private key file isn't publicly viewable
 $ ansible -m ping webservers --private-key=a3keypair.pem --inventory=hosts --user=ubuntu # ping and add host
-The authenticity of host '<PublicIP> (<PublicIP>)' can't be established.
+The authenticity of host 'PublicIP (PublicIP)' can't be established.
 ECDSA key fingerprint is SHA256:Y35MHCMwSCH/GZyak+HWkd5bUCKm6JtMOuMCxMAnpkI.
 Are you sure you want to continue connecting (yes/no)? yes
 <PublicIP> | SUCCESS => {
