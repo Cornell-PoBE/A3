@@ -716,14 +716,14 @@ $ cd flaskplate
 # Add a Vagrant directory where you will contain your Vagrant files
 # as well as: ansible cookbooks, keypair pem files, and upstart scripts
 $ mkdir vagrant
-# add vagrant/* to your .gitignore either via sublime or by running
+# add vagrant/* to your .gitignore either via a text editor or by running
 # echo "vagrant/*" >> .gitignore
 $ cd vagrant
 # Initialize Vagrant with a Vagrantfile
 $ vagrant init
 $ ls
 Vagrantfile
-# You will now add the following files each of which should be familiair
+# You will now add the following files each of which should be familiar
 # from the example walkthrough
 $ touch site.yml
 $ touch a3.nginx.j2
@@ -749,6 +749,7 @@ Follow these steps to have a proper t2.micro instance setup:
   * Set security group name: `pobe`
   * Set descrption: `Backend Engineering Security Group`
   * Use the following configs:
+  
     | Type | Ports | Protocol | Source          |
     |:---:||:-----:|:--------:|-----------------|
     | HTTP |   80  |    tcp   | 0.0.0.0/0, ::/0 |
