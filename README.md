@@ -750,11 +750,11 @@ Follow these steps to have a proper t2.micro instance setup:
   * Set descrption: `Backend Engineering Security Group`
   * Use the following configs:
 
-    | Type | Ports | Protocol | Source          |
-    |:----:||:-----:|:--------:|-----------------|
-    | HTTP |   80  |    tcp   | 0.0.0.0/0, ::/0 |
-    | SSH  |   22  |    tcp   | 0.0.0.0/0, ::/0 |
-    | HTTPS| 443   |    tcp   | 0.0.0.0/0, ::/0 |
+| Type | Ports | Protocol | Source          |
+|:----:||:-----:|:--------:|-----------------|
+| HTTP |   80  |    tcp   | 0.0.0.0/0, ::/0 |
+| SSH  |   22  |    tcp   | 0.0.0.0/0, ::/0 |
+| HTTPS| 443   |    tcp   | 0.0.0.0/0, ::/0 |
 9. 
 
 I will now go through how each of your files should look for this app to be deployed:
