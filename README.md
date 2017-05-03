@@ -775,7 +775,7 @@ $ pip install --upgrade --user awscli
 ...
 Succesfully installed
 $ ssh-keygen 
-enerating public/private rsa key pair.
+Generating public/private rsa key pair.
 Enter file in which to save the key (/Users/<YOUR_USERNAME>/.ssh/id_rsa):
 Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
