@@ -742,7 +742,7 @@ Follow these steps to have a proper t2.micro instance setup:
 3. Direct to US-West (Oregon) [here](https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2)
 4. Go to EC2 Instance [NOC](https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Instances:sort=instanceState) or Network Operations Console
 5. Launch Instance
-6. Step 1: Under AMI choose `Ubuntu Server 16.04 LTS (HVM), SSD Volume Type - ami-efd0428f` 
+6. Step 1: Under AMI choose `Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-7c22b41c`
 7. Step 2: Choose t2.micro which is the free tier
 8. Skip to Step 6 and do the following:
   * Create a new security group
@@ -755,8 +755,34 @@ Follow these steps to have a proper t2.micro instance setup:
 | HTTP  |   80  |    tcp   | 0.0.0.0/0, ::/0 |
 | SSH   |   22  |    tcp   | 0.0.0.0/0, ::/0 |
 | HTTPS | 443   |    tcp   | 0.0.0.0/0, ::/0 |
-9. 
+9. Step 7: Launch Instance
+10. Download the keypair and place into your `vagrant` directory
+  * Create a new key pair
+  * Set Key pair name: `a3keypair`
+  * Download Key Pair
+  * Place key pair file into `/flaskplate/vagrant/
+11. Wait until instance is green and with an instance state of: `running`
+12. Grab IPv4 Public IP, which I will call `PublicIP` for the rest of tutorial
 
+You will now run the following back in your project directory: 
+```bash
+$ cd vagrant
+# Checking to make sure you have included the keypair file
+$ ls
+Vagrantfile     a3.nginx.j2     a3keypair.pem   ansible.cfg     hosts           site.yml        upstart.conf.j2
+# Ensure that you have a private key by running ssh-keygen (this will require you to download the Amazon CLI )
+$ pip install --upgrade --user awscli
+...
+Succesfully installed
+$ ssh-keygen 
+enerating public/private rsa key pair.
+Enter file in which to save the key (/Users/<YOUR_USERNAME>/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /Users/<YOUR_USERNAME>/.ssh/id_rsa.
+Your public key has been saved in /Users/<YOUR_USERNAME>/.ssh/id_rsa.pub.
+...
+```
 I will now go through how each of your files should look for this app to be deployed:
 
 Vagrantfile:
@@ -829,14 +855,15 @@ Vagrant.configure("2") do |config|
   # documentation for more information about their specific syntax and use.
   config.vm.provision 'ansible' do |ansible|
     ansible.playbook = 'site.yml'
-    ansible.verbose = 'v'
+    ansible.verbose = 'vvv'
   end
 end
 ```
+
 hosts:
 ```
 [webservers]
- <YOUR_EC2_PUBLIC_URL> ansible_ssh_user=ubuntu
+ <PublicIP> ansible_ssh_user=ubuntu
 ```
 
 upstart.conf.j2
@@ -847,18 +874,21 @@ start on (filesystem)
 stop on runlevel [016]
 
 respawn
-setuid nobody
+setuid root
 setgid nogroup
-chdir /home/vagrant/A3
+chdir {{ repository_path }}
 
-exec gunicorn app:app --bind unix:/tmp/a3.sock --workers 3
+# For this portion I have included -e which are the environmental variables you have included in your .env file. 
+# Because you are gitignoring the vagrant directory you can put sensitive information here
+# Put your respective environmental variables here
+exec gunicorn app:app --bind=unix:/tmp/a3.sock --workers 3 --user=root --log-level=debug -e DATABASE_URL=postgresql://localhost/my_app_db -e APP_SETTINGS=config.ProductionConfig
 ```
 
 a3.nginx.j2:
 ```j2
 server {
     listen 80;
-
+    client_max_body_size 4G;
     location / {
         include proxy_params;
         proxy_pass http://unix:/tmp/a3.sock;
@@ -879,42 +909,75 @@ pipelining = True
 
 site.yml:
 ```yml
-# This is a simple example Ansible playbook
 ---
-- name: Starting a Simple Flask App
+- name: Deploying your A2 
   hosts: all
   remote_user: root
   become: true
   become_method: sudo
+  environment: 
+    LC_ALL: en_US.UTF-8
+    LANG: en_US.UTF-8
+    LANGUAGE: en_US.UTF-8
   vars:
-      repository_url: https://github.com/Cornell-PoBE/A3
-      repository_path: /home/vagrant/A3
-
+      repository_url: https://github.com/Cornell-PoBE/flaskplate.git 
+      repository_path: /home/vagrant/flaskplate
+      dbname: mydb
+      dbuser: myapp
+      dbpassword: password
   tasks:
     - name: Install necessary packages
       apt: update_cache=yes name={{ item }} state=present
       with_items:
-        - git
+        - libatlas-base-dev 
+        - gfortran 
+        - g++
+        - build-essential
+        - libssl-dev 
+        - libffi-dev 
         - python-dev
+        - postgresql
+        - libpq-dev
+        - git
         - python-pip
         - nginx
-    - name: Check if A3 directory exists
+        - python-numpy
+        - python-scipy
+    - name: Run echo
+      command: echo $APP_SETTINGS; echo $DATABASE_URL
+    - name: Check if directory exists
       stat: path='{{ repository_path }}'
-      register: a3_cloned
+      register: cloned
     - name: Pull application repo
       command: chdir='{{ repository_path }}' git pull origin master
-      when: a3_cloned.stat.exists
+      when: cloned.stat.exists
     - name: Clone application repo
       git: repo='{{ repository_url }}' dest='{{ repository_path }}'
-      when: a3_cloned.stat.exists == false
+      when: cloned.stat.exists == false
     - name: Install pip requirements
       pip: requirements='{{ repository_path }}/requirements.txt'
     - name: Copy Upstart configuration
       template: src=upstart.conf.j2 dest=/etc/init/upstart.conf
+    - name: ensure database is created
+      become_user: postgres
+      become: yes
+      postgresql_db: name={{dbname}} login_user=postgres
+    - name: ensure user has access to database
+      become_user: postgres
+      become: yes
+      postgresql_user: db={{dbname}} name={{dbuser}} password={{dbpassword}} priv=ALL login_user=postgres
+    - name: ensure user does not have unnecessary privilege
+      become_user: postgres
+      become: yes
+      postgresql_user: name={{dbuser}} role_attr_flags=NOSUPERUSER,NOCREATEDB login_user=postgres
+    - name: ensure no other user can access the database
+      become_user: postgres
+      become: yes
+      postgresql_privs: db={{dbname}} role=PUBLIC type=database priv=ALL state=absent login_user=postgres
     - name: Make sure our server is running
       service: name=upstart state=started
     - name: Copy Nginx site values
-      template: src=a3.nginx.j2 dest=/etc/nginx/sites-enabled/a3
+      template: src=cs.nginx.j2 dest=/etc/nginx/sites-enabled/cs
       notify:
         - restart nginx
     - name: Remove any default sites
@@ -928,11 +991,12 @@ site.yml:
       service: name=nginx state=restarted
 ```
 
-These files should be sufficient for seting up your enviroment. To proceed you will just run the following commands to load into your EC2:
+These files should be sufficient for seting up your enviroment. To proceed you will just run the following commands to launch you VM:
+
 ```bash
 $ cd vagrant
 $ vagrant up
-$ vagrant provision # nginx runs your app locally at: `192.168.33.10`
+$ vagrant provision # nginx runs your app locally at: `192.168.33.10` on your Ubuntu VM
 $ ansible-playbook -v site.yml # ansible runs your app on EC2
 ```
 
@@ -940,7 +1004,7 @@ Now your app is deployed on EC2 and up on your local VM. Yay!
 
 ## Expected Functionality
 For this assignment we will be asking you to complete two things:
-* simulate your A2 application in Vagrand on an `Ubunutu 14.0.1` VM
+* simulate your A2 application in Vagrand on an `Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-7c22b41c` VM
 * deploy your application onto an EC2 instance via a signle `ansible` command
 
 To verify, you will be submitting your EC2 public url: which we you will be accessing to verify the deployment. 
