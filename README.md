@@ -11,12 +11,15 @@ This assignment is trying to allow for you to explore the word of DevOPs by gett
 * `ansible` as a tool for automated deployment
 * `terraform` as a service to launch AWS instances and other services
 
+We have provided for you an step-by-step example walkthrough on the dummy `Flask` app contained in this repo. This example walkthrough will explain each of the technologies and how each of them should be structured to build a fully automated deployment application. 
+
+The example walkthrough is optional, but highly recommended, however you are required to go through the assignment walkthrough which will simulate and deploy your A2. More details below.
 
 ## Table of Contents
 
 * [Academic Integrity](#academic-integrity)
 * [Example Walkthrough](#example-walkthrough)
-* [Example Walkthrough TL;DR](#example-walkthrough-tldr)
+* [Assignment Walkthrough](#assignment-walkthrough)
 * [Expected Functionality](#expected-functionality)
 * [Extending the Assignment](#extending-the-assignment)
 * [Project Submission](#project-submission)
@@ -30,7 +33,7 @@ Note that these projects should be completed **individually**.  As a result, all
 ### Code Attribution and Collaboration
 
 ## Example Walkthrough
-For this assignment we will be deploying our Flask app leveraging Vagrant, Ansible, Terraform, and AWS. The walkthrough is as follows:
+For this example we will be deploying our the example app in this repo leveraging Vagrant, Ansible, and AWS. The walkthrough is as follows:
 ### Vagrant Setup
 For this assignment: instead of using [virtualenv](https://virtualenv.pypa.io/en/stable/) we will be using [Vagrant](https://www.vagrantup.com/). Why?
 
@@ -700,27 +703,59 @@ $ cd vagrant
 $ ansible-playbook -v site.yml
 ```
 
-## Example Walkthrough TL;DR
+## Assignment Walkthrough
 
-Assuming you have read the above or are aware of each of the technologies listed in [here](#learning-objectives) you may follow this guide to quickly deploy the dummy app in this repository both on your `Vagrant` Ubuntu VM and on AWS EC2. 
+Assuming you have read the above or are aware of each of the technologies listed in [here](#learning-objectives) you may follow this guide to deploy your A2 application both on your `Vagrant` Ubuntu VM and on AWS EC2. 
 
-Setup your directories with the following structure 
+Follow the instructions carefully keeping the knowledge from above in mind: 
 ```bash
-$ git clone https://github.com/Cornell-PoBE/A3.git
-$ cd A3
+# Clone your A2 repository that you submitted on CMS
+$ git clone https://github.com/Cornell-PoBE/flaskplate.git 
+# Change directory into your repository
+$ cd flaskplate
+# Add a Vagrant directory where you will contain your Vagrant files
+# as well as: ansible cookbooks, keypair pem files, and upstart scripts
 $ mkdir vagrant
+# add vagrant/* to your .gitignore either via sublime or by running
+# echo "vagrant/*" >> .gitignore
 $ cd vagrant
+# Initialize Vagrant with a Vagrantfile
 $ vagrant init
+$ ls
+Vagrantfile
+# You will now add the following files each of which should be familiair
+# from the example walkthrough
 $ touch site.yml
 $ touch a3.nginx.j2
 $ touch ansible.cfg
 $ touch upstart.conf.j2
 $ touch hosts
-# Copy your keypair.pem into this directory 
 $ ls
-Vagrantfile     a3keypair.pem   hosts           upstart.conf.j2
-a3.nginx.j2     ansible.cfg     site.yml
+Vagrantfile     a3.nginx.j2     ansible.cfg     hosts           site.yml        upstart.conf.j2
 ```
+
+At this point in time you will be required to setup an AWS account and launch an EC2 instance.
+Follow these steps to have a proper t2.micro instance setup:
+
+1. Direct to AWS main site [here](https://aws.amazon.com/)
+2. Sign in or Sign up 
+3. Direct to US-West (Oregon) [here](https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2)
+4. Go to EC2 Instance [NOC](https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Instances:sort=instanceState) or Network Operations Console
+5. Launch Instance
+6. Step 1: Under AMI choose `Ubuntu Server 16.04 LTS (HVM), SSD Volume Type - ami-efd0428f` 
+7. Step 2: Choose t2.micro which is the free tier
+8. Skip to Step 6 and do the following:
+  * Create a new security group
+  * Set security group name: `pobe`
+  * Set descrption: `Backend Engineering Security Group`
+  * Use the following configs:
+    | Type | Ports | Protocol | Source          |
+    |:---:||:-----:|:--------:|-----------------|
+    | HTTP |   80  |    tcp   | 0.0.0.0/0, ::/0 |
+    | SSH  |   22  |    tcp   | 0.0.0.0/0, ::/0 |
+    | HTTPS| 443   |    tcp   | 0.0.0.0/0, ::/0 |
+9. 
+
 I will now go through how each of your files should look for this app to be deployed:
 
 Vagrantfile:
