@@ -779,9 +779,9 @@ six==1.10.0
 
 Next you will ensure that you are working with the proper working enviornment that this guide is using:
 ```bash
+$ virtualenv venv
 $ ls 
 Vagrantfile     a3.nginx.j2     ansible.cfg     hosts           site.yml        upstart.conf.j2   venv      venv-requirements.txt 
-$ virtualenv venv
 $ source venv/bin/activate
 $ pip install -r venv-requirements.txt
 ```
