@@ -44,6 +44,16 @@ There’s two main challenges that you’ll encounter in DevOps:
 
 We’ll use Vagrant for our development environment because it allows us to address these challenges. As such, we will set up a virtual machine and run it there but still write code locally.
 
+#### Note
+If you want to mimic our development environment, you can run `virtualenv` to have all the same packages without installing `Vagrant`, `Ansible`, and `AWS CLI` on your home-machine as depicted in this guide. This can be done with the following commands:
+```bash
+$ pwd
+<CURR_DIRECTORY>/A3
+$ virtualenv venv
+$ source venv/bin/activate
+$ pip install -r venv-requirements.txt
+```
+
 To get started we must install Vagrant [here](https://www.vagrantup.com/docs/installation/)
 
 With vagrant installed: check success of installation with `vagrant help`
@@ -508,7 +518,7 @@ You now have an up and running EC2 instance!
 
 However, lets talk about automating the EC2 part. For this, we will use [Terraform](https://www.terraform.io/) to provision our infrastructure. There are many options, one big one is: [CloudFormation](https://aws.amazon.com/cloudformation/), but we will use Terrform for this tutorial.
 
-#### Terraform Setup (THIS DOESNT NOT WORK YET!)
+#### Extensions [ Terraform Setup ]
 
 To download `Terraform` you can download from [here](https://www.terraform.io/downloads.html) or just run `brew install terraform`. 
 To check that `Terraform` has been successfully installed run `terraform help`. 
@@ -710,9 +720,9 @@ Assuming you have read the above or are aware of each of the technologies listed
 Follow the instructions carefully keeping the knowledge from above in mind: 
 ```bash
 # Clone your A2 repository that you submitted on CMS
-$ git clone https://github.com/Cornell-PoBE/flaskplate.git 
+$ git clone <YOUR_REPO>
 # Change directory into your repository
-$ cd flaskplate
+$ cd <YOUR_REPO>
 # Add a Vagrant directory where you will contain your Vagrant files
 # as well as: ansible cookbooks, keypair pem files, and upstart scripts
 $ mkdir vagrant
@@ -732,6 +742,47 @@ $ touch upstart.conf.j2
 $ touch hosts
 $ ls
 Vagrantfile     a3.nginx.j2     ansible.cfg     hosts           site.yml        upstart.conf.j2
+$ touch venv-requirements.txt
+```
+
+Make sure venv-requirements.txt include these fields: 
+
+```txt
+ansible==2.3.2.0
+asn1crypto==0.22.0
+awscli==1.11.138
+bcrypt==3.1.3
+botocore==1.6.5
+cffi==1.10.0
+colorama==0.3.7
+cryptography==2.0.3
+docutils==0.14
+enum34==1.1.6
+futures==3.1.1
+idna==2.6
+ipaddress==1.0.18
+Jinja2==2.9.6
+jmespath==0.9.3
+MarkupSafe==1.0
+paramiko==2.2.1
+pyasn1==0.3.2
+pycparser==2.18
+pycrypto==2.6.1
+PyNaCl==1.1.2
+python-dateutil==2.6.1
+python-vagrant==0.5.15
+PyYAML==3.12
+rsa==3.4.2
+s3transfer==0.1.10
+six==1.10.0
+```
+
+Next you will ensure that you are working with the proper working enviornment that this guide is using:
+```bash
+$ ls 
+Vagrantfile     a3.nginx.j2     ansible.cfg     hosts           site.yml        upstart.conf.j2   venv      venv-requirements.txt 
+$ source venv/bin/activate
+$ pip install -r venv-requirements.txt
 ```
 
 At this point in time you will be required to setup an AWS account and launch an EC2 instance.
@@ -760,7 +811,7 @@ Follow these steps to have a proper t2.micro instance setup:
   * Create a new key pair
   * Set Key pair name: `a3keypair`
   * Download Key Pair
-  * Place key pair file into `/flaskplate/vagrant/`
+  * Place key pair file into `/<YOUR_REPO>/vagrant/`
 11. Wait until instance is green and with an instance state of: `running`
 12. Grab IPv4 Public IP, which I will call `PublicIP` for the rest of tutorial
 
@@ -770,8 +821,7 @@ $ cd vagrant
 # Checking to make sure you have included the keypair file
 $ ls
 Vagrantfile     a3.nginx.j2     a3keypair.pem   ansible.cfg     hosts           site.yml        upstart.conf.j2
-# Ensure that you have a private key by running ssh-keygen (this will require you to download the Amazon CLI )
-$ pip install --upgrade --user awscli
+# Ensure that you have a private key by running ssh-keygen using the AWS CLI
 ...
 Succesfully installed
 $ ssh-keygen 
@@ -920,11 +970,11 @@ site.yml:
     LANG: en_US.UTF-8
     LANGUAGE: en_US.UTF-8
   vars:
-      repository_url: https://github.com/Cornell-PoBE/flaskplate.git 
-      repository_path: /home/vagrant/flaskplate
-      dbname: mydb
-      dbuser: myapp
-      dbpassword: password
+      repository_url: <YOUR_REPO>
+      repository_path: /home/vagrant/<YOUR_REPO>
+      dbname: DB_NAME
+      dbuser: DB_USER
+      dbpassword: DB_PASSWORD
   tasks:
     - name: Install necessary packages
       apt: update_cache=yes name={{ item }} state=present
