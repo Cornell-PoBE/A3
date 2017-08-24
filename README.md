@@ -1,7 +1,7 @@
 # Assignment 3- DevOps
 
-For your third assignment, you will be deploying your A2 application and setting up an environment that allows for you to continously update said application. 
-The section [here](#example-walkthrough) showcases an extensive walkthrough with the dummy app contained in this repository: leveraging Flask, GUnicorn, Nginx, Vagrant, Ansible, and Terraform. 
+For your third assignment, you will be deploying your A2 application and setting up an environment that allows for you to continously update said application.
+The section [here](#example-walkthrough) showcases an extensive walkthrough with the dummy app contained in this repository: leveraging Flask, GUnicorn, Nginx, Vagrant, Ansible, and Terraform.
 
 ## Learning Objectives
 This assignment is trying to allow for you to explore the word of DevOPs by getting you comfortable working with the following tools / technologies / concepts:
@@ -11,7 +11,7 @@ This assignment is trying to allow for you to explore the word of DevOPs by gett
 * `ansible` as a tool for automated deployment
 * `terraform` as a service to launch AWS instances and other services
 
-We have provided for you an step-by-step example walkthrough on the dummy `Flask` app contained in this repo. This example walkthrough will explain each of the technologies and how each of them should be structured to build a fully automated deployment application. 
+We have provided for you an step-by-step example walkthrough on the dummy `Flask` app contained in this repo. This example walkthrough will explain each of the technologies and how each of them should be structured to build a fully automated deployment application.
 
 The example walkthrough is optional, but highly recommended, however you are required to go through the assignment walkthrough which will simulate and deploy your A2. More details below.
 
@@ -57,7 +57,7 @@ $ pip install -r venv-requirements.txt
 To get started we must install Vagrant [here](https://www.vagrantup.com/docs/installation/)
 
 With vagrant installed: check success of installation with `vagrant help`
-Next you will make a new directory called `vagrant` and set up a basic Vagrant configuration file that we can change to suit our needs. 
+Next you will make a new directory called `vagrant` and set up a basic Vagrant configuration file that we can change to suit our needs.
 This can be done by running `vagrant init.`
 
 ```bash
@@ -155,9 +155,9 @@ Vagrant.configure(2) do |config|
 end
 ```
 
-Next, in your terminal, you should run `vagrant up`. 
-This will download the Ubuntu image that we specified as the config.vm.box value and create your server as a virtual machine. 
-This might take a little while, depending on your connection speed. 
+Next, in your terminal, you should run `vagrant up`.
+This will download the Ubuntu image that we specified as the config.vm.box value and create your server as a virtual machine.
+This might take a little while, depending on your connection speed.
 Once it completes, run vagrant ssh. It will put us into the command line of our virtual machine (VM).
 
 ```bash
@@ -168,7 +168,7 @@ Bringing machine 'default' up with 'virtualbox' provider...
 $ vagrant ssh
 Welcome to Ubuntu 14.04.5 LTS (GNU/Linux 3.13.0-95-generic x86_64)
 ...
-vagrant@vagrant-ubuntu-trusty-64:~$ 
+vagrant@vagrant-ubuntu-trusty-64:~$
 ```
 
 Now in your VM you can run the following:
@@ -188,15 +188,15 @@ Cleaning up...
 vagrant@vagrant-ubuntu-trusty-64:~/A3$ python app.py
  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
 ```
-Now you can navigate to: `http://192.168.33.10:5000/` and see the app. 
+Now you can navigate to: `http://192.168.33.10:5000/` and see the app.
 
 This is a simple way of bringing our app online. But let's say we want to automate this, and in the future automate more complicated instructions and executions.
 
 ### Ansible Setup
-We will be using [Ansible](https://www.ansible.com/) and its playbooks to automate the instructions above, as an example. 
-Essentially, it will log in to servers that you specify using `ssh` and run commands on them. 
+We will be using [Ansible](https://www.ansible.com/) and its playbooks to automate the instructions above, as an example.
+Essentially, it will log in to servers that you specify using `ssh` and run commands on them.
 
-To begin, you will need to exit the VM we created and install Ansible on the host machine. 
+To begin, you will need to exit the VM we created and install Ansible on the host machine.
 ```bash
 vagrant@vagrant-ubuntu-trusty-64:~/A3$ exit
 logout
@@ -205,11 +205,11 @@ $ sudo pip install ansible
 ...
 Successfully installed PyYAML-3.12 ansible-2.3.0.0 asn1crypto-0.22.0 cryptography-1.8.1 idna-2.5 ipaddress-1.0.18 packaging-16.8 paramiko-2.1.2 pycrypto-2.6.1
 ```
-Now in your `vagrant` folder we will create a file called `site.yml`. 
+Now in your `vagrant` folder we will create a file called `site.yml`.
 
 This will be our Ansible [playbook](http://docs.ansible.com/ansible/playbooks.html), and it will contain our automation steps. `site` implies that this is the only file needed to get a successful version of our site up and running. The `.yml` extension tells us that it’s a YAML-formatted file (Ansible’s preference).
 
-Your site.xml would look something like this, for our above example: 
+Your site.xml would look something like this, for our above example:
 
 ```yml
 # This is an example of a simple Ansible cookbook
@@ -252,7 +252,7 @@ Now that we have the playbook defined, we’ll need to tell our VM to use it whe
   end
 ```
 
-We’re telling Vagrant to use the `site.yml` file we created and to use verbose output. Then, let’s reprovision your host. This will run all the commands we defined in the playbook on it. `vagrant provision` should take care of it, but we will destroy the VM and restart it to prove that it works. 
+We’re telling Vagrant to use the `site.yml` file we created and to use verbose output. Then, let’s reprovision your host. This will run all the commands we defined in the playbook on it. `vagrant provision` should take care of it, but we will destroy the VM and restart it to prove that it works.
 
 ```bash
 $ vagrant destroy
@@ -272,11 +272,11 @@ vagrant@vagrant-ubuntu-trusty-64:~/A3$ python app.py
  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
 ```
 
-We have now built a fully automated script. For other examples your scripts will be more complex with templates, hosts, roles, etc. 
+We have now built a fully automated script. For other examples your scripts will be more complex with templates, hosts, roles, etc.
 
 Next, we’ll need a webserver to serve requests. Serving requests through the application’s debug server poses serious security risks and it’s not intended for anything like a production load.
 
-To serve our requests, we’re going to use `gunicorn`. Other popular options are `uWSGI` or gevent but, for the sake of constraining choice, we’ll go with this `gunicorn`.
+To serve our requests, we’re going to use `gunicorn`. Other popular options are `uWSGI` or gevent but, for the sake of constraining choice, we’ll go with `gunicorn`.
 
 We’re going to assume that the rest of what you’re doing here will be run within the VM unless otherwise specified.
 
@@ -290,8 +290,8 @@ You can run `gunicorn` with just `$ gunicorn --bind 0.0.0.0:8000 app:app`. This 
 Now that we have `gunicorn` configured, we need an HTTP server to handle the requests themselves and make sure we route our users to the right application. We’ll use [nginx](https://www.nginx.com/) to do this.
 
 As such, we will need to setup an `nginx` configuration file.
-The goal of this configuration file is to make sure that we can access our server at the same host (`192.168.33.10`) but without needing to specify a port. 
-Create the nginx configuration will be created in vagrant directory as well:
+The goal of this configuration file is to make sure that we can access our server at the same host (`192.168.33.10`) but without needing to specify a port.
+The nginx configuration will be created in the vagrant directory as well:
 
 ```bash
 $ pwd
@@ -315,7 +315,7 @@ This file will tell nginx to look for our server,a unix socket, which, if our gu
 
 With `gunicorn` rudimentarily configured, we’ll want to set up a script so that we can run our server automatically when our server restarts or just kick the process if it’s stuck. How we’ll do that is with an [upstart](http://upstart.ubuntu.com/) script. This script will handle starting and stopping tasks.
 
-With an upstart scrupt we should be able to run `sudo service nginx restart` to start the task, go in your browser, and then view the service at `http://192.168.33.10`, as before. The big difference is now we have something that will run it for us, so we don’t need to SSH to run our server.
+With an upstart script we should be able to run `sudo service nginx restart` to start the task, go in your browser, and then view the service at `http://192.168.33.10`, as before. The big difference is now we have something that will run it for us, so we don’t need to SSH to run our server.
 
 As such we will create an a3-upstart script:
 
@@ -341,7 +341,7 @@ chdir {{ repository_path }}
 exec gunicorn app:app --bind unix:/tmp/a3.sock --workers 3
 ```
 
-However we must ensure that Ansible copies those two file into the `vagrant` directory, so each of the VMs will have access to the files. 
+However we must ensure that Ansible copies those two file into the `vagrant` directory, so each of the VMs will have access to the files.
 
 As such, you will modify your site.yml to be this:
 
@@ -398,16 +398,16 @@ We’re using Ansible’s template and service modules to accomplish our task. W
 
 Then, we want to make sure our service has started. If it hasn’t been started yet, start it.
 
-The removal of `etc/nginx/sites-enabled/default` is necessary since there is a [problem](http://stackoverflow.com/questions/14972792/nginx-nginx-emerg-bind-to-80-failed-98-address-already-in-use) with the `default` site that’s enabled by `nginx`. We don’t need it, so we remove it. 
+The removal of `etc/nginx/sites-enabled/default` is necessary since there is a [problem](http://stackoverflow.com/questions/14972792/nginx-nginx-emerg-bind-to-80-failed-98-address-already-in-use) with the `default` site that’s enabled by `nginx`. We don’t need it, so we remove it.
 
-You can now run `vagrant provision`, `vagrant ssh`, and `sudo service nginx restart` to start the web server. 
+You can now run `vagrant provision`, `vagrant ssh`, and `sudo service nginx restart` to start the web server.
 
 ```bash
 $ pwd
 <CURR_DIRECTORY>/A3/vagrant
 $ ls
 Vagrantfile     a3.nginx.j2     site.yml        upstart.conf.j2
-$ vagrant provision 
+$ vagrant provision
 ==> default: Running provisioner: ansible...
     default: Running ansible-playbook...
 ...
@@ -421,18 +421,18 @@ vagrant@vagrant-ubuntu-trusty-64:~/A3$ sudo service nginx restart
 
 You can now navigate to `http://192.168.33.10/` and see your application!
 
-The next step in our tutorial is to deploy our application to Amazon AWS. 
+The next step in our tutorial is to deploy our application to Amazon AWS.
 
 #### Amazon AWS
 
 You will be required to create an Amazon Account and launch an EC2 instance.
 
-This EC2 instance should be using `Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-7c22b41c` as an AMI. 
+This EC2 instance should be using `Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-7c22b41c` as an AMI.
 This AMI will be the same type of OS that we used for our VM.
 
-I would recommend that you choose the `t2.micro`, which is a small, free tier-eligible instance type. 
+I would recommend that you choose the `t2.micro`, which is a small, free tier-eligible instance type.
 
-After, launching download the the key-pair and name it `a3keypair` for the sake of consistency with this tutorial. 
+After launching, download the the key-pair and name it `a3keypair` for the sake of consistency with this tutorial.
 
 Launch your instance, ssh into your instance, and create a private key with the following commands:
 
@@ -443,7 +443,7 @@ $ ssh -i <CURR_DIRECTORY>a3keypair.pem ubuntu@<SERVER_PUBLIC_IP>
 ubuntu@ip-<SERVER_PRIVATE_IP>:~$ exit
 logout
 Connection to <SERVER_PUBLIC_IP> closed.
-$ ssh-keygen 
+$ ssh-keygen
 enerating public/private rsa key pair.
 Enter file in which to save the key (/Users/<YOUR_USERNAME>/.ssh/id_rsa):
 Enter passphrase (empty for no passphrase):
@@ -486,7 +486,7 @@ $ ansible -m ping webservers --private-key=a3keypair.pem --inventory=hosts --use
 }
 ```
 
-Let's automate this `ssh` like process with an Ansible [config](http://docs.ansible.com/ansible/intro_configuration.html) file to automate it. 
+Let's automate this `ssh` like process with an Ansible [config](http://docs.ansible.com/ansible/intro_configuration.html) file to automate it.
 Create a file named `ansible.cfg` in your vagrant directory:
 
 ```bash
@@ -516,14 +516,16 @@ PLAY RECAP *********************************************************************
 
 You now have an up and running EC2 instance!
 
-However, lets talk about automating the EC2 part. For this, we will use [Terraform](https://www.terraform.io/) to provision our infrastructure. There are many options, one big one is: [CloudFormation](https://aws.amazon.com/cloudformation/), but we will use Terrform for this tutorial.
+For further extension, not necessary to know for the scope of this class, we will be looking about automating the deploying of the EC2 instance.
+
+For this, we will use [Terraform](https://www.terraform.io/) to provision our infrastructure. There are many options, one big one is: [CloudFormation](https://aws.amazon.com/cloudformation/), but we will use Terrform for this tutorial.
 
 #### Extensions [ Terraform Setup ]
 
-To download `Terraform` you can download from [here](https://www.terraform.io/downloads.html) or just run `brew install terraform`. 
-To check that `Terraform` has been successfully installed run `terraform help`. 
+To download `Terraform` you can download from [here](https://www.terraform.io/downloads.html) or just run `brew install terraform`.
+To check that `Terraform` has been successfully installed run `terraform help`.
 
-Basically how Terraform works is that we’ll define the different resources that we want to set up and then we’ll use `Terraform` to plan out what our changes will do and, finally, apply the plan. 
+Basically how Terraform works is that we’ll define the different resources that we want to set up and then we’ll use `Terraform` to plan out what our changes will do and, finally, apply the plan.
 
 Firstly you will make a directory for `Terraform` in your application and create a new file called: `main.tf`. The `.tf`extensions indicate that they’re using the Terraform syntax, which is similar to JSON.
 
@@ -581,15 +583,15 @@ resource "aws_key_pair" "a3keypair" {
     public_key = "${file(var.public_key_path)}"
 }
 ```
-In the first provider block, we specify our credentials for AWS. The `${var.aws_secret_key}` value, for example, tells `Terraform` to look for a variable named `aws_secret_key` and plug the value in there. 
+In the first provider block, we specify our credentials for AWS. The `${var.aws_secret_key}` value, for example, tells `Terraform` to look for a variable named `aws_secret_key` and plug the value in there.
 
-For our instance, we set the Amazon AMI ID to match thet one we used previously in the tutorial. We also set up the key and security groups to reference other resources. `"${aws_security_group.web.id}"` tells `Terraform` to look for another `aws_security_group` resource named `web` and plug in its `id`.
+For our instance, we set the Amazon AMI ID to match the one we used previously in the tutorial. We also set up the key and security groups to reference other resources. `"${aws_security_group.web.id}"` tells `Terraform` to look for another `aws_security_group` resource named `web` and plug in its `id`.
 
 Next, we set up the `security group` as we did in the tutorial above. We’re letting in SSH control (port 22), HTTP (port 80), and nothing else. We’re allowing all outbound traffic.
 
 Finally, we create a new `aws_key_pair` to remotely ssh into our server, just as we did when setting it up manually above.
 
-Now, we had defined a few [variables](https://www.terraform.io/intro/getting-started/variables.html) in our `main.tf` file, and we need to provide the values for those to `Terraform`. As such we will create a new file called variables.tf. 
+Now, we had defined a few [variables](https://www.terraform.io/intro/getting-started/variables.html) in our `main.tf` file, and we need to provide the values for those to `Terraform`. As such we will create a new file called variables.tf.
 
 ```bash
 $ pwd
@@ -618,7 +620,7 @@ Finally, we’ll need one more file, which we’ll want to be sure we don’t in
 ```bash
 $ pwd
 <CURR_DIRECTORY>/A3/terraform
-$ touch terraform.tfvars 
+$ touch terraform.tfvars
 ```
 
 Mofidy this file to have this:
@@ -637,11 +639,11 @@ To get an AWS access and secret key it will require you to go to the IAM portion
 * Create user
 * Grab Access Key and Secret Key
 
-Next we would like to set it up using Ansible but, in order to do that, we need to know the ip address created by our `Terraform` plan. 
+Next we would like to set it up using Ansible but, in order to do that, we need to know the ip address created by our `Terraform` plan.
 
-To do this we will leverage [output variables](https://www.terraform.io/intro/getting-started/outputs.html). 
+To do this we will leverage [output variables](https://www.terraform.io/intro/getting-started/outputs.html).
 
-As such we wil need to make one more file: 
+As such we wil need to make one more file:
 
 ```bash
 $ pwd
@@ -657,8 +659,8 @@ output "ip" {
 }
 ```
 
-This will reference our resources and show us the IP address for the created instance called `a3`. 
-Now you can terminate the instance you created and have `Terraform` handle it for you. 
+This will reference our resources and show us the IP address for the created instance called `a3`.
+Now you can terminate the instance you created and have `Terraform` handle it for you.
 
 Now run the following:
 
@@ -684,7 +686,7 @@ Outputs:
 ip = <YOUR_NEW_PUBLIC_IP>
 ```
 
-And add the result to your `host` file in your `vagrant` folder. 
+And add the result to your `host` file in your `vagrant` folder.
 
 ```yml
 [webservers]
@@ -715,9 +717,9 @@ $ ansible-playbook -v site.yml
 
 ## Assignment Walkthrough
 
-Assuming you have read the above or are aware of each of the technologies listed in [here](#learning-objectives) you may follow this guide to deploy your A2 application both on your `Vagrant` Ubuntu VM and on AWS EC2. 
+Assuming you have read the above or are aware of each of the technologies listed in [here](#learning-objectives) you may follow this guide to deploy your A2 application both on your `Vagrant` Ubuntu VM and on AWS EC2.
 
-Follow the instructions carefully keeping the knowledge from above in mind: 
+Follow the instructions carefully keeping the knowledge from above in mind:
 ```bash
 # Clone your A2 repository that you submitted on CMS
 $ git clone <YOUR_REPO>
@@ -745,8 +747,9 @@ Vagrantfile     a3.nginx.j2     ansible.cfg     hosts           site.yml        
 $ touch venv-requirements.txt
 ```
 
-Make sure venv-requirements.txt include these fields: 
+Make sure venv-requirements.txt include these fields:
 
+venv-requirements.txt:
 ```txt
 ansible==2.3.2.0
 asn1crypto==0.22.0
@@ -777,11 +780,11 @@ s3transfer==0.1.10
 six==1.10.0
 ```
 
-Next you will ensure that you are working with the proper working enviornment that this guide is using:
+Next you will ensure that you are working with the proper working environment that this guide is using:
 ```bash
 $ virtualenv venv
-$ ls 
-Vagrantfile     a3.nginx.j2     ansible.cfg     hosts           site.yml        upstart.conf.j2   venv      venv-requirements.txt 
+$ ls
+Vagrantfile     a3.nginx.j2     ansible.cfg     hosts           site.yml        upstart.conf.j2   venv      venv-requirements.txt
 $ source venv/bin/activate
 $ pip install -r venv-requirements.txt
 ```
@@ -790,7 +793,7 @@ At this point in time you will be required to setup an AWS account and launch an
 Follow these steps to have a proper t2.micro instance setup:
 
 1. Direct to AWS main site [here](https://aws.amazon.com/)
-2. Sign in or Sign up 
+2. Sign in or Sign up
 3. Direct to US-West (Oregon) [here](https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2)
 4. Go to EC2 Instance [NOC](https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Instances:sort=instanceState) or Network Operations Console
 5. Launch Instance
@@ -799,7 +802,7 @@ Follow these steps to have a proper t2.micro instance setup:
 8. Skip to Step 6 and do the following:
   * Create a new security group
   * Set security group name: `pobe`
-  * Set descrption: `Backend Engineering Security Group`
+  * Set description: `Backend Engineering Security Group`
   * Use the following configs:
 
 | Type  | Ports | Protocol | Source          |
@@ -816,7 +819,7 @@ Follow these steps to have a proper t2.micro instance setup:
 11. Wait until instance is green and with an instance state of: `running`
 12. Grab IPv4 Public IP, which I will call `PublicIP` for the rest of tutorial
 
-You will now run the following back in your project directory: 
+You will now run the following back in your project directory:
 ```bash
 $ cd vagrant
 # Checking to make sure you have included the keypair file
@@ -825,7 +828,7 @@ Vagrantfile     a3.nginx.j2     a3keypair.pem   ansible.cfg     hosts           
 # Ensure that you have a private key by running ssh-keygen using the AWS CLI
 ...
 Succesfully installed
-$ ssh-keygen 
+$ ssh-keygen
 Generating public/private rsa key pair.
 Enter file in which to save the key (/Users/<YOUR_USERNAME>/.ssh/id_rsa):
 Enter passphrase (empty for no passphrase):
@@ -927,12 +930,12 @@ stop on runlevel [016]
 respawn
 setuid root
 setgid nogroup
-chdir {{ repository_path }}
+chdir {{ repository_path }}/src
 
-# For this portion I have included -e which are the environmental variables you have included in your .env file. 
+# For this portion I have included -e which are the environmental variables you have included in your .env file.
 # Because you are gitignoring the vagrant directory you can put sensitive information here
 # Put your respective environmental variables here
-exec gunicorn app:app --bind=unix:/tmp/a3.sock --workers 3 --user=root --log-level=debug -e DATABASE_URL=postgresql://localhost/my_app_db -e APP_SETTINGS=config.ProductionConfig
+exec gunicorn app:app --bind=unix:/tmp/a3.sock --workers 3 --user=root --log-level=debug -e DB_USERNAME={{ DB_USERNAME }} -e DB_PASSWORD={{ DB_PASSWORD }} -e DB_NAME={{ DB_NAME }} -e DB_HOST={{ DB_HOST }} -e APP_SETTINGS={{ APP_SETTINGS }}
 ```
 
 a3.nginx.j2:
@@ -961,70 +964,104 @@ pipelining = True
 site.yml:
 ```yml
 ---
-- name: Deploying your A2 
+- name: Deploying your A2
   hosts: all
   remote_user: root
   become: true
   become_method: sudo
-  environment: 
+  environment:
     LC_ALL: en_US.UTF-8
     LANG: en_US.UTF-8
     LANGUAGE: en_US.UTF-8
   vars:
-      repository_url: <YOUR_REPO>
-      repository_path: /home/vagrant/<YOUR_REPO>
-      dbname: DB_NAME
-      dbuser: DB_USER
-      dbpassword: DB_PASSWORD
+      repository_git_path: <GITHUB_USERNAME>/<PRIVATE_REPO_DIR>
+      repository_path: /home/vagrant/<PRIVATE_REPO_DIR>
+      DB_USERNAME: <DB_USER_NAME>
+      DB_PASSWORD: <DB_PASSWORD>
+      DB_NAME: pobe_a2_db
+      DB_HOST: localhost
+      APP_SETTINGS: config.ProductionConfig
+      GITHUB_USER: <GITHUB_USERNAME>
+      GITHUB_PASSWORD: <GITHUB_PASSWORD>
   tasks:
     - name: Install necessary packages
       apt: update_cache=yes name={{ item }} state=present
       with_items:
-        - libatlas-base-dev 
-        - gfortran 
+        - libatlas-base-dev
+        - gfortran
         - g++
         - build-essential
-        - libssl-dev 
-        - libffi-dev 
+        - libssl-dev
+        - libffi-dev
         - python-dev
-        - postgresql
+        - libmysqlclient-dev
+        - mysql-server
         - libpq-dev
         - git
         - python-pip
         - nginx
         - python-numpy
         - python-scipy
-    - name: Run echo
-      command: echo $APP_SETTINGS; echo $DATABASE_URL
+        - gridsite-clients
     - name: Check if directory exists
       stat: path='{{ repository_path }}'
       register: cloned
     - name: Pull application repo
-      command: chdir='{{ repository_path }}' git pull origin master
+      git:
+        repo: "https://{{ GITHUB_USER | urlencode }}:{{ GITHUB_PASSWORD }}@github.com/{{ repository_git_path }}.git"
+        dest: '{{ repository_path }}'
+        clone: no
       when: cloned.stat.exists
-    - name: Clone application repo
-      git: repo='{{ repository_url }}' dest='{{ repository_path }}'
+    - name: Get updated files from git repository
+      git:
+        repo: "https://{{ GITHUB_USER | urlencode }}:{{ GITHUB_PASSWORD }}@github.com/{{ repository_git_path }}.git"
+        dest: '{{ repository_path }}'
       when: cloned.stat.exists == false
     - name: Install pip requirements
-      pip: requirements='{{ repository_path }}/requirements.txt'
+      command: pip install -r {{ repository_path }}/src/requirements.txt
     - name: Copy Upstart configuration
       template: src=upstart.conf.j2 dest=/etc/init/upstart.conf
-    - name: ensure database is created
-      become_user: postgres
-      become: yes
-      postgresql_db: name={{dbname}} login_user=postgres
-    - name: ensure user has access to database
-      become_user: postgres
-      become: yes
-      postgresql_user: db={{dbname}} name={{dbuser}} password={{dbpassword}} priv=ALL login_user=postgres
-    - name: ensure user does not have unnecessary privilege
-      become_user: postgres
-      become: yes
-      postgresql_user: name={{dbuser}} role_attr_flags=NOSUPERUSER,NOCREATEDB login_user=postgres
-    - name: ensure no other user can access the database
-      become_user: postgres
-      become: yes
-      postgresql_privs: db={{dbname}} role=PUBLIC type=database priv=ALL state=absent login_user=postgres
+    - name: Create a new database with name {{ DB_NAME }}
+      mysql_db:
+        name: '{{ DB_NAME }}'
+        state: present
+    - name: Create database user that you have defined above
+      mysql_user: user={{ DB_USERNAME }} password={{ DB_PASSWORD }} priv=*.*:ALL state=present
+    - name: Check if migration exists
+      stat: path={{ repository_path }}/src/migrations
+      register: migrations      
+    - name: Run initialization script
+      command: python manage.py db init  
+      environment:
+        DB_USERNAME: '{{ DB_USERNAME }}'
+        DB_PASSWORD: '{{ DB_PASSWORD }}'
+        DB_NAME: '{{ DB_NAME }}'
+        DB_HOST: '{{ DB_HOST }}'
+        APP_SETTINGS: '{{ APP_SETTINGS }}'
+      args:
+        chdir: '{{ repository_path }}/src/'
+      when: migrations.stat.exists == false
+    - name: Run migrations script
+      command: python manage.py db migrate
+      environment:
+        DB_USERNAME: '{{ DB_USERNAME }}'
+        DB_PASSWORD: '{{ DB_PASSWORD }}'
+        DB_NAME: '{{ DB_NAME }}'
+        DB_HOST: '{{ DB_HOST }}'
+        APP_SETTINGS: '{{ APP_SETTINGS }}'
+      args:
+        chdir: '{{ repository_path }}/src/'
+      when: migrations.stat.exists == false  
+    - name: Run upgrade script
+      command: python manage.py db upgrade
+      environment:
+        DB_USERNAME: '{{ DB_USERNAME }}'
+        DB_PASSWORD: '{{ DB_PASSWORD }}'
+        DB_NAME: '{{ DB_NAME }}'
+        DB_HOST: '{{ DB_HOST }}'
+        APP_SETTINGS: '{{ APP_SETTINGS }}'
+      args:
+        chdir: '{{ repository_path }}/src/'
     - name: Make sure our server is running
       service: name=upstart state=started
     - name: Copy Nginx site values
@@ -1042,10 +1079,19 @@ site.yml:
       service: name=nginx state=restarted
 ```
 
-These files should be sufficient for seting up your enviroment. To proceed you will just run the following commands to launch you VM:
+As you can the `.yml` contains sensitive information like your Github credentials and mySQL configs.
+So make sure to `.gitignore` the file.
+
+These files should be sufficient for setting up your environment. To proceed you will just run the following commands to launch you VM:
 
 ```bash
+$ ls
+README.md board.png src       vagrant
 $ cd vagrant
+$ ls
+Vagrantfile           a3keypair.pem         hosts                 upstart.conf.j2       venv-requirements.txt
+a3.nginx.j2           ansible.cfg           site.yml              venv
+$ source venv/bin/activate
 $ vagrant up
 $ vagrant provision # nginx runs your app locally at: `192.168.33.10` on your Ubuntu VM
 $ chmod 400 a3keypair.pem # make sure that your private key file isn't publicly viewable
@@ -1075,12 +1121,17 @@ Now your app is deployed on EC2 and up on your local VM. Yay!
 ## Expected Functionality
 For this assignment we will be asking you to complete two things:
 * simulate your A2 application in Vagrand on an `Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-7c22b41c` VM
-* deploy your application onto an EC2 instance via a signle `ansible` command
+* deploy your application onto an EC2 instance via a single `ansible` command
 
-To verify, you will be submitting your EC2 public url: which we you will be accessing to verify the deployment. 
+To verify, you will be submitting your EC2 public url in a `.txt`: which we will be accessing to verify the deployment.
+You may use the exact file-structure that we have provided for you above or you may deviate from it with your own specifications.
 
 ## Extending the Assignment
-
+To extend this assignment you may:
+* automating the EC2 deployment with Terraform as noted in the extended section as part of the example walkthrough
+* deploy with `Docker` and `Kubernetes` in `Minikube` and then `Google Cloud Engine` to build a scalable application that has load balancing
 
 ## Project Submission
+You should submit a `.txt` file containing only the public EC2 url, along with a `readme.txt` for your citations, project setup information, and any extensions you might have done.
 
+You can then submit this file to `CMS`.
